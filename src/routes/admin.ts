@@ -4,10 +4,11 @@
  */
 
 import { Router, Request, Response } from 'express';
+import type { Router as RouterType } from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import prisma from '../lib/prisma.js';
 
-const router = Router();
+const router: RouterType = Router();
 
 // All admin routes require authentication
 router.use(requireAuth);

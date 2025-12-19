@@ -4,13 +4,14 @@
  */
 
 import { Router, Request, Response } from 'express';
+import type { Router as RouterType } from 'express';
 import crypto from 'crypto';
 import { config } from '../config.js';
 import prisma from '../lib/prisma.js';
 import { createShopifyClient } from '../lib/shopify.js';
 import { verifyHmac } from '../middleware/auth.js';
 
-const router = Router();
+const router: RouterType = Router();
 
 /**
  * Step 1: Initiate OAuth

@@ -38,12 +38,12 @@ export interface ShopifyClientOptions {
 }
 
 export class ShopifyClient {
-  private shopDomain: string;
+  private _shopDomain: string;
   private accessToken: string;
   private endpoint: string;
 
   constructor(options: ShopifyClientOptions) {
-    this.shopDomain = options.shopDomain;
+    this._shopDomain = options.shopDomain;
     this.accessToken = options.accessToken;
     this.endpoint = getGraphQLEndpoint(options.shopDomain);
   }
@@ -131,8 +131,6 @@ export class ShopifyClient {
       shippingDiscounts?: boolean;
     };
   }) {
-    // Determine discount type
-    let customerGetsValue: string;
 
     if (params.freeShipping) {
       // Free shipping discount

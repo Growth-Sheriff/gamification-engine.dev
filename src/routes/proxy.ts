@@ -5,6 +5,7 @@
  */
 
 import { Router, Request, Response } from 'express';
+import type { Router as RouterType } from 'express';
 import prisma from '../lib/prisma.js';
 import { createShopifyClient } from '../lib/shopify.js';
 import {
@@ -19,8 +20,9 @@ import {
   formatShopifyDate,
 } from '../utils/index.js';
 import { nanoid } from 'nanoid';
+import { Prisma } from '@prisma/client';
 
-const router = Router();
+const router: RouterType = Router();
 
 // ═══════════════════════════════════════════════════════════════════════════
 // INIT - Session başlatma (fingerprint bazlı)
@@ -102,7 +104,7 @@ router.post('/init', async (req: Request, res: Response) => {
     // Create session
     const sessionToken = `sess_${nanoid(24)}`;
 
-    const session = await prisma.session.create({
+    const _session = await prisma.session.create({
       data: {
         visitorId: visitor.id,
         token: sessionToken,
@@ -447,7 +449,7 @@ router.post('/play', async (req: Request, res: Response) => {
           type: winningSegment.type,
           value: winningSegment.value,
           label: winningSegment.label,
-        } : null,
+        } : Prisma.JsonNull,
         discountId: discount?.id,
       },
     });

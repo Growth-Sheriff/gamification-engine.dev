@@ -4,11 +4,13 @@
  */
 
 import { Router, Request, Response } from 'express';
+import type { Router as RouterType } from 'express';
 import { requireApiAuth } from '../middleware/auth.js';
 import prisma from '../lib/prisma.js';
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
 
-const router = Router();
+const router: RouterType = Router();
 
 // All API routes require authentication
 router.use(requireApiAuth);
@@ -104,7 +106,10 @@ router.put('/games/:id', async (req: Request, res: Response) => {
 
     const updated = await prisma.game.update({
       where: { id: req.params.id },
-      data: parsed.data,
+      data: {
+        ...parsed.data,
+        config: parsed.data.config as Prisma.InputJsonValue,
+      },
       include: {
         segments: { orderBy: { order: 'asc' } },
       },

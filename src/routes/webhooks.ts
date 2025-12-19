@@ -4,10 +4,11 @@
  */
 
 import { Router, Request, Response } from 'express';
+import type { Router as RouterType } from 'express';
 import prisma from '../lib/prisma.js';
 import { verifyWebhookMiddleware } from '../middleware/auth.js';
 
-const router = Router();
+const router: RouterType = Router();
 
 // All webhooks need raw body for HMAC verification
 // This is handled in the main app with express.raw()
