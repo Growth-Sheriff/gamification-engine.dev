@@ -578,5 +578,306 @@ router.post('/track', async (req: Request, res: Response) => {
   }
 });
 
+// ═══════════════════════════════════════════════════════════════════════════
+// CLAIM - Email ile indirim kodunu talep et
+// ═══════════════════════════════════════════════════════════════════════════
+
+interface ClaimRequest {
+  sessionToken: string;
+  discountId: string;
+  email: string;
+}
+
+router.post('/claim', async (req: Request, res: Response) => {
+  try {
+    const { sessionToken, discountId, email } = req.body as ClaimRequest;
+
+    if (!sessionToken || !discountId || !email) {
+      res.status(400).json({ success: false, error: 'Missing required fields' });
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      res.status(400).json({ success: false, error: 'Invalid email format' });
+      return;
+    }
+
+    const session = await prisma.session.findUnique({
+      where: { token: sessionToken },
+      include: { visitor: true },
+    });
+
+    if (!session || !session.isActive) {
+      res.status(401).json({ success: false, error: 'Invalid session' });
+      return;
+    }
+
+    const discount = await prisma.discount.findUnique({
+      where: { id: discountId },
+    });
+
+    if (!discount) {
+      res.status(404).json({ success: false, error: 'Discount not found' });
+      return;
+    }
+
+    if (discount.visitorId !== session.visitorId) {
+      res.status(403).json({ success: false, error: 'Unauthorized' });
+      return;
+    }
+
+    await prisma.visitor.update({
+      where: { id: session.visitorId },
+      data: { email },
+    });
+
+    res.json({
+      success: true,
+      data: {
+        code: discount.code,
+        type: discount.type,
+        value: discount.value,
+        expiresAt: discount.expiresAt,
+      },
+    });
+  } catch (error) {
+    console.error('Proxy claim error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// VERIFY - İndirim kodunu doğrula
+// ═══════════════════════════════════════════════════════════════════════════
+
+interface VerifyRequest {
+  code: string;
+  shop?: string;
+}
+
+router.post('/verify', async (req: Request, res: Response) => {
+  try {
+    const { code } = req.body as VerifyRequest;
+    const shopDomain = req.get('X-Shopify-Shop-Domain') ||
+                       req.query.shop as string ||
+                       req.body?.shop as string;
+
+    if (!code) {
+      res.status(400).json({ success: false, error: 'Missing discount code' });
+      return;
+    }
+
+    const discount = await prisma.discount.findFirst({
+      where: shopDomain ? {
+        code: code.toUpperCase(),
+        shop: { domain: shopDomain },
+      } : {
+        code: code.toUpperCase(),
+      },
+      include: { rule: true },
+    });
+
+    if (!discount) {
+      res.json({ success: true, data: { valid: false, reason: 'Code not found' } });
+      return;
+    }
+
+    if (discount.status === 'USED') {
+      res.json({ success: true, data: { valid: false, reason: 'Code already used' } });
+      return;
+    }
+
+    if (discount.status === 'EXPIRED' || new Date() > discount.expiresAt) {
+      res.json({ success: true, data: { valid: false, reason: 'Code expired' } });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        valid: true,
+        code: discount.code,
+        type: discount.type,
+        value: discount.value,
+        expiresAt: discount.expiresAt,
+        minOrderAmount: discount.rule?.minOrderAmount,
+      },
+    });
+  } catch (error) {
+    console.error('Proxy verify error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STATUS - Session durumunu kontrol et
+// ═══════════════════════════════════════════════════════════════════════════
+
+interface StatusRequest {
+  sessionToken: string;
+}
+
+router.post('/status', async (req: Request, res: Response) => {
+  try {
+    const { sessionToken } = req.body as StatusRequest;
+
+    if (!sessionToken) {
+      res.status(400).json({ success: false, error: 'Missing session token' });
+      return;
+    }
+
+    const session = await prisma.session.findUnique({
+      where: { token: sessionToken },
+      include: {
+        visitor: {
+          include: {
+            shop: true,
+            plays: {
+              orderBy: { playedAt: 'desc' },
+              take: 5,
+              include: { game: true, discount: true },
+            },
+            discounts: {
+              where: { status: 'CREATED' },
+              orderBy: { createdAt: 'desc' },
+              take: 5,
+            },
+          },
+        },
+      },
+    });
+
+    if (!session) {
+      res.status(404).json({ success: false, error: 'Session not found' });
+      return;
+    }
+
+    const visitor = session.visitor;
+
+    const activeGame = await prisma.game.findFirst({
+      where: { shopId: visitor.shopId, isActive: true },
+    });
+
+    let canPlay = false;
+    if (activeGame) {
+      const rule = await prisma.discountRule.findFirst({
+        where: {
+          shopId: visitor.shopId,
+          isActive: true,
+          OR: [{ gameId: activeGame.id }, { gameId: null }],
+        },
+      });
+
+      if (rule) {
+        const cooldownStart = new Date();
+        cooldownStart.setHours(cooldownStart.getHours() - rule.cooldownHours);
+
+        const recentPlays = await prisma.play.count({
+          where: {
+            visitorId: visitor.id,
+            gameId: activeGame.id,
+            playedAt: { gte: cooldownStart },
+          },
+        });
+
+        canPlay = recentPlays < rule.maxPlaysPerVisitor;
+      }
+    }
+
+    res.json({
+      success: true,
+      data: {
+        sessionActive: session.isActive,
+        visitor: {
+          id: visitor.id,
+          email: visitor.email,
+          totalPlays: visitor.totalPlays,
+          totalWins: visitor.totalWins,
+        },
+        canPlay,
+        activeGame: activeGame ? { id: activeGame.id, type: activeGame.type, name: activeGame.name } : null,
+        recentPlays: visitor.plays.map(p => ({
+          id: p.id,
+          game: p.game.name,
+          result: p.result,
+          playedAt: p.playedAt,
+          discount: p.discount ? { code: p.discount.code, status: p.discount.status } : null,
+        })),
+        activeDiscounts: visitor.discounts.map(d => ({
+          code: d.code,
+          type: d.type,
+          value: d.value,
+          expiresAt: d.expiresAt,
+        })),
+      },
+    });
+  } catch (error) {
+    console.error('Proxy status error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GAME - Aktif oyun ayarlarını al (public)
+// ═══════════════════════════════════════════════════════════════════════════
+
+router.get('/game', async (req: Request, res: Response) => {
+  try {
+    const shopDomain = req.get('X-Shopify-Shop-Domain') || req.query.shop as string;
+
+    if (!shopDomain) {
+      res.status(400).json({ success: false, error: 'Missing shop domain' });
+      return;
+    }
+
+    const shop = await prisma.shop.findUnique({
+      where: { domain: shopDomain },
+    });
+
+    if (!shop || !shop.isActive) {
+      res.status(404).json({ success: false, error: 'Shop not found' });
+      return;
+    }
+
+    const activeGame = await prisma.game.findFirst({
+      where: {
+        shopId: shop.id,
+        isActive: true,
+        OR: [{ startDate: null }, { startDate: { lte: new Date() } }],
+        AND: [{ OR: [{ endDate: null }, { endDate: { gte: new Date() } }] }],
+      },
+      include: {
+        segments: {
+          orderBy: { order: 'asc' },
+          select: { id: true, label: true, color: true },
+        },
+      },
+    });
+
+    if (!activeGame) {
+      res.json({ success: true, data: null });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        id: activeGame.id,
+        type: activeGame.type,
+        name: activeGame.name,
+        config: activeGame.config,
+        trigger: activeGame.trigger,
+        triggerValue: activeGame.triggerValue,
+        showOnPages: activeGame.showOnPages,
+        segments: activeGame.segments,
+      },
+    });
+  } catch (error) {
+    console.error('Proxy game error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
 export default router;
 
