@@ -1,111 +1,111 @@
-<%- Include('../layouts/admIn', { body: `
+<%- include('../layouts/admin', { body: `
 
 <!-- Page Header -->
-<dIv class="d-flex justIfy-content-between alIgn-Items-center mb-4">
-  <dIv>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
     <h4 class="mb-1">
-      <I class="tI tI-chart-bar me-2"></I>
-      AnalItIk
+      <i class="ti ti-chart-bar me-2"></i>
+      Analitik
     </h4>
     <p class="text-muted mb-0">Son 30 günlük performans</p>
-  </dIv>
-  <dIv class="d-flex gap-2">
-    <select class="form-select" style="wIdth: auto;">
-      <optIon value="30">Son 30 Gün</optIon>
-      <optIon value="7">Son 7 Gün</optIon>
-      <optIon value="90">Son 90 Gün</optIon>
+  </div>
+  <div class="d-flex gap-2">
+    <select class="form-select" style="width: auto;">
+      <option value="30">Son 30 Gün</option>
+      <option value="7">Son 7 Gün</option>
+      <option value="90">Son 90 Gün</option>
     </select>
-  </dIv>
-</dIv>
+  </div>
+</div>
 
 <!-- Summary Cards -->
-<dIv class="row g-4 mb-4">
-  <dIv class="col-sm-6 col-xl-2">
-    <dIv class="card stats-card">
-      <dIv class="stats-Icon" style="background: rgba(115, 103, 240, 0.12);">
-        <I class="tI tI-eye" style="color: #7367f0;"></I>
-      </dIv>
-      <dIv class="stats-value">${ typeof totals !== 'undefIned' ? totals.vIews : 0 }</dIv>
-      <dIv class="stats-label">Görüntüleme</dIv>
-    </dIv>
-  </dIv>
-  <dIv class="col-sm-6 col-xl-2">
-    <dIv class="card stats-card">
-      <dIv class="stats-Icon" style="background: rgba(0, 207, 232, 0.12);">
-        <I class="tI tI-rotate-clockwIse" style="color: #00cfe8;"></I>
-      </dIv>
-      <dIv class="stats-value">${ typeof totals !== 'undefIned' ? totals.plays : 0 }</dIv>
-      <dIv class="stats-label">Oyun</dIv>
-    </dIv>
-  </dIv>
-  <dIv class="col-sm-6 col-xl-2">
-    <dIv class="card stats-card">
-      <dIv class="stats-Icon" style="background: rgba(40, 199, 111, 0.12);">
-        <I class="tI tI-trophy" style="color: #28c76f;"></I>
-      </dIv>
-      <dIv class="stats-value">${ typeof totals !== 'undefIned' ? totals.wIns : 0 }</dIv>
-      <dIv class="stats-label">Kazanan</dIv>
-    </dIv>
-  </dIv>
-  <dIv class="col-sm-6 col-xl-2">
-    <dIv class="card stats-card">
-      <dIv class="stats-Icon" style="background: rgba(255, 159, 67, 0.12);">
-        <I class="tI tI-tag" style="color: #ff9f43;"></I>
-      </dIv>
-      <dIv class="stats-value">${ typeof totals !== 'undefIned' ? totals.claIms : 0 }</dIv>
-      <dIv class="stats-label">Kod Alındı</dIv>
-    </dIv>
-  </dIv>
-  <dIv class="col-sm-6 col-xl-2">
-    <dIv class="card stats-card">
-      <dIv class="stats-Icon" style="background: rgba(234, 84, 85, 0.12);">
-        <I class="tI tI-receIpt" style="color: #ea5455;"></I>
-      </dIv>
-      <dIv class="stats-value">${ typeof totals !== 'undefIned' ? totals.redemptIons : 0 }</dIv>
-      <dIv class="stats-label">Kullanıldı</dIv>
-    </dIv>
-  </dIv>
-  <dIv class="col-sm-6 col-xl-2">
-    <dIv class="card stats-card">
-      <dIv class="stats-Icon" style="background: rgba(40, 199, 111, 0.12);">
-        <I class="tI tI-currency-dollar" style="color: #28c76f;"></I>
-      </dIv>
-      <dIv class="stats-value">$${ typeof totals !== 'undefIned' ? totals.revenue.toFIxed(2) : '0.00' }</dIv>
-      <dIv class="stats-label">GelIr</dIv>
-    </dIv>
-  </dIv>
-</dIv>
+<div class="row g-4 mb-4">
+  <div class="col-sm-6 col-xl-2">
+    <div class="card stats-card">
+      <div class="stats-icon" style="background: rgba(115, 103, 240, 0.12);">
+        <i class="ti ti-eye" style="color: #7367f0;"></i>
+      </div>
+      <div class="stats-value">${ typeof totals !== 'undefined' ? totals.views : 0 }</div>
+      <div class="stats-label">Görüntüleme</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-2">
+    <div class="card stats-card">
+      <div class="stats-icon" style="background: rgba(0, 207, 232, 0.12);">
+        <i class="ti ti-rotate-clockwise" style="color: #00cfe8;"></i>
+      </div>
+      <div class="stats-value">${ typeof totals !== 'undefined' ? totals.plays : 0 }</div>
+      <div class="stats-label">Oyun</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-2">
+    <div class="card stats-card">
+      <div class="stats-icon" style="background: rgba(40, 199, 111, 0.12);">
+        <i class="ti ti-trophy" style="color: #28c76f;"></i>
+      </div>
+      <div class="stats-value">${ typeof totals !== 'undefined' ? totals.wins : 0 }</div>
+      <div class="stats-label">Kazanan</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-2">
+    <div class="card stats-card">
+      <div class="stats-icon" style="background: rgba(255, 159, 67, 0.12);">
+        <i class="ti ti-tag" style="color: #ff9f43;"></i>
+      </div>
+      <div class="stats-value">${ typeof totals !== 'undefined' ? totals.claims : 0 }</div>
+      <div class="stats-label">Kod Alındı</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-2">
+    <div class="card stats-card">
+      <div class="stats-icon" style="background: rgba(234, 84, 85, 0.12);">
+        <i class="ti ti-receipt" style="color: #ea5455;"></i>
+      </div>
+      <div class="stats-value">${ typeof totals !== 'undefined' ? totals.redemptions : 0 }</div>
+      <div class="stats-label">Kullanıldı</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-2">
+    <div class="card stats-card">
+      <div class="stats-icon" style="background: rgba(40, 199, 111, 0.12);">
+        <i class="ti ti-currency-dollar" style="color: #28c76f;"></i>
+      </div>
+      <div class="stats-value">$${ typeof totals !== 'undefined' ? totals.revenue.toFixed(2) : '0.00' }</div>
+      <div class="stats-label">Gelir</div>
+    </div>
+  </div>
+</div>
 
 <!-- Chart -->
-<dIv class="row g-4">
-  <dIv class="col-12">
-    <dIv class="card">
-      <dIv class="card-header">
-        <h5 class="card-tItle mb-0">Günlük Performans</h5>
-      </dIv>
-      <dIv class="card-body">
-        <canvas Id="performanceChart" heIght="100"></canvas>
-      </dIv>
-    </dIv>
-  </dIv>
-</dIv>
+<div class="row g-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Günlük Performans</h5>
+      </div>
+      <div class="card-body">
+        <canvas id="performanceChart" height="100"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Chart.js CDN -->
-<scrIpt src="https://cdn.jsdelIvr.net/npm/chart.js@4.4.1/dIst/chart.umd.mIn.js"></scrIpt>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
-<scrIpt>
-document.addEventLIstener('DOMContentLoaded', functIon() {
-  const analytIcs = ${ typeof analytIcs !== 'undefIned' ? JSON.strIngIfy(analytIcs) : '[]' };
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const analytics = ${ typeof analytics !== 'undefined' ? JSON.stringify(analytics) : '[]' };
 
-  const labels = analytIcs.map(a => new Date(a.date).toLocaleDateStrIng('tr-TR', { day: 'numerIc', month: 'short' }));
-  const plays = analytIcs.map(a => a.plays);
-  const wIns = analytIcs.map(a => a.wIns);
-  const redemptIons = analytIcs.map(a => a.redemptIons);
+  const labels = analytics.map(a => new Date(a.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }));
+  const plays = analytics.map(a => a.plays);
+  const wins = analytics.map(a => a.wins);
+  const redemptions = analytics.map(a => a.redemptions);
 
   const ctx = document.getElementById('performanceChart').getContext('2d');
 
   new Chart(ctx, {
-    type: 'lIne',
+    type: 'line',
     data: {
       labels: labels,
       datasets: [
@@ -114,52 +114,52 @@ document.addEventLIstener('DOMContentLoaded', functIon() {
           data: plays,
           borderColor: '#7367f0',
           backgroundColor: 'rgba(115, 103, 240, 0.1)',
-          fIll: true,
-          tensIon: 0.4
+          fill: true,
+          tension: 0.4
         },
         {
           label: 'Kazananlar',
-          data: wIns,
+          data: wins,
           borderColor: '#28c76f',
           backgroundColor: 'rgba(40, 199, 111, 0.1)',
-          fIll: true,
-          tensIon: 0.4
+          fill: true,
+          tension: 0.4
         },
         {
           label: 'Kullanılan Kodlar',
-          data: redemptIons,
+          data: redemptions,
           borderColor: '#ff9f43',
           backgroundColor: 'rgba(255, 159, 67, 0.1)',
-          fIll: true,
-          tensIon: 0.4
+          fill: true,
+          tension: 0.4
         }
       ]
     },
-    optIons: {
-      responsIve: true,
-      maIntaInAspectRatIo: true,
-      plugIns: {
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
         legend: {
-          posItIon: 'top',
+          position: 'top',
         }
       },
       scales: {
         y: {
-          begInAtZero: true,
-          grId: {
+          beginAtZero: true,
+          grid: {
             color: 'rgba(0, 0, 0, 0.05)'
           }
         },
         x: {
-          grId: {
-            dIsplay: false
+          grid: {
+            display: false
           }
         }
       }
     }
   });
 });
-</scrIpt>
+</script>
 
-`, actIve: 'analytIcs' }) %>
+`, active: 'analytics' }) %>
 

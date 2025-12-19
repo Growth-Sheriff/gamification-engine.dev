@@ -1,366 +1,366 @@
-<%- Include('../../layouts/admIn', { body: `
+<%- include('../../layouts/admin', { body: `
 
 <!-- Page Header -->
-<dIv class="d-flex justIfy-content-between alIgn-Items-center mb-4">
-  <dIv>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
     <h4 class="mb-1">
-      <I class="tI tI-rotate-clockwIse me-2"></I>
-      SpIn Wheel
+      <i class="ti ti-rotate-clockwise me-2"></i>
+      Spin Wheel
     </h4>
     <p class="text-muted mb-0">Çark ayarlarını yapılandırın</p>
-  </dIv>
-  <dIv class="d-flex gap-2">
-    <button type="button" class="btn btn-outlIne-secondary" Id="prevIewBtn">
-      <I class="tI tI-eye me-1"></I> ÖnIzle
+  </div>
+  <div class="d-flex gap-2">
+    <button type="button" class="btn btn-outline-secondary" id="previewBtn">
+      <i class="ti ti-eye me-1"></i> Önizle
     </button>
-    <button type="button" class="btn btn-prImary" Id="saveBtn">
-      <I class="tI tI-devIce-floppy me-1"></I> Kaydet
+    <button type="button" class="btn btn-primary" id="saveBtn">
+      <i class="ti ti-device-floppy me-1"></i> Kaydet
     </button>
-  </dIv>
-</dIv>
+  </div>
+</div>
 
-<dIv class="row g-4">
+<div class="row g-4">
 
-  <!-- Left Column - SettIngs -->
-  <dIv class="col-lg-6">
+  <!-- Left Column - Settings -->
+  <div class="col-lg-6">
 
-    <!-- General SettIngs -->
-    <dIv class="card mb-4">
-      <dIv class="card-header">
-        <h5 class="card-tItle mb-0">Genel Ayarlar</h5>
-      </dIv>
-      <dIv class="card-body">
-        <form Id="gameSettIngsForm">
-          <Input type="hIdden" name="gameId" value="${ typeof game !== 'undefIned' ? game.Id : '' }">
+    <!-- General Settings -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Genel Ayarlar</h5>
+      </div>
+      <div class="card-body">
+        <form id="gameSettingsForm">
+          <input type="hidden" name="gameId" value="${ typeof game !== 'undefined' ? game.id : '' }">
 
-          <dIv class="mb-3">
+          <div class="mb-3">
             <label class="form-label">Oyun Adı</label>
-            <Input type="text" class="form-control" name="name" value="${ typeof game !== 'undefIned' ? game.name : 'Şanslı Çark' }">
-          </dIv>
+            <input type="text" class="form-control" name="name" value="${ typeof game !== 'undefined' ? game.name : 'Şanslı Çark' }">
+          </div>
 
-          <dIv class="mb-3">
+          <div class="mb-3">
             <label class="form-label">Durum</label>
-            <dIv class="form-check form-swItch">
-              <Input class="form-check-Input" type="checkbox" name="IsActIve" Id="IsActIve" ${ typeof game !== 'undefIned' && game.IsActIve ? 'checked' : '' }>
-              <label class="form-check-label" for="IsActIve">
-                ${ typeof game !== 'undefIned' && game.IsActIve ? 'AktIf' : 'PasIf' }
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" name="isActive" id="isActive" ${ typeof game !== 'undefined' && game.isActive ? 'checked' : '' }>
+              <label class="form-check-label" for="isActive">
+                ${ typeof game !== 'undefined' && game.isActive ? 'Aktif' : 'Pasif' }
               </label>
-            </dIv>
-          </dIv>
+            </div>
+          </div>
 
-          <dIv class="row">
-            <dIv class="col-md-6 mb-3">
-              <label class="form-label">TetIkleyIcI</label>
-              <select class="form-select" name="trIgger">
-                <optIon value="PAGE_LOAD" ${ typeof game !== 'undefIned' && game.trIgger === 'PAGE_LOAD' ? 'selected' : '' }>Sayfa YüklendIğInde</optIon>
-                <optIon value="TIME_ON_PAGE" ${ typeof game !== 'undefIned' && game.trIgger === 'TIME_ON_PAGE' ? 'selected' : '' }>X SanIye Sonra</optIon>
-                <optIon value="SCROLL_DEPTH" ${ typeof game !== 'undefIned' && game.trIgger === 'SCROLL_DEPTH' ? 'selected' : '' }>%X Scroll Sonrası</optIon>
-                <optIon value="EXIT_INTENT" ${ typeof game !== 'undefIned' && game.trIgger === 'EXIT_INTENT' ? 'selected' : '' }>Çıkış NIyetInde</optIon>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Tetikleyici</label>
+              <select class="form-select" name="trigger">
+                <option value="PAGE_LOAD" ${ typeof game !== 'undefined' && game.trigger === 'PAGE_LOAD' ? 'selected' : '' }>Sayfa Yüklendiğinde</option>
+                <option value="TIME_ON_PAGE" ${ typeof game !== 'undefined' && game.trigger === 'TIME_ON_PAGE' ? 'selected' : '' }>X Saniye Sonra</option>
+                <option value="SCROLL_DEPTH" ${ typeof game !== 'undefined' && game.trigger === 'SCROLL_DEPTH' ? 'selected' : '' }>%X Scroll Sonrası</option>
+                <option value="EXIT_INTENT" ${ typeof game !== 'undefined' && game.trigger === 'EXIT_INTENT' ? 'selected' : '' }>Çıkış Niyetinde</option>
               </select>
-            </dIv>
-            <dIv class="col-md-6 mb-3">
+            </div>
+            <div class="col-md-6 mb-3">
               <label class="form-label">Değer</label>
-              <dIv class="Input-group">
-                <Input type="number" class="form-control" name="trIggerValue" value="${ typeof game !== 'undefIned' ? game.trIggerValue : 3000 }">
-                <span class="Input-group-text">ms</span>
-              </dIv>
-            </dIv>
-          </dIv>
+              <div class="input-group">
+                <input type="number" class="form-control" name="triggerValue" value="${ typeof game !== 'undefined' ? game.triggerValue : 3000 }">
+                <span class="input-group-text">ms</span>
+              </div>
+            </div>
+          </div>
 
         </form>
-      </dIv>
-    </dIv>
+      </div>
+    </div>
 
     <!-- Segments -->
-    <dIv class="card">
-      <dIv class="card-header d-flex justIfy-content-between alIgn-Items-center">
-        <h5 class="card-tItle mb-0">Çark SegmentlerI</h5>
-        <button type="button" class="btn btn-sm btn-prImary" Id="addSegmentBtn">
-          <I class="tI tI-plus me-1"></I> Ekle
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Çark Segmentleri</h5>
+        <button type="button" class="btn btn-sm btn-primary" id="addSegmentBtn">
+          <i class="ti ti-plus me-1"></i> Ekle
         </button>
-      </dIv>
-      <dIv class="card-body p-0">
-        <dIv class="table-responsIve">
-          <table class="table table-modern mb-0" Id="segmentsTable">
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-modern mb-0" id="segmentsTable">
             <thead>
               <tr>
-                <th wIdth="30">#</th>
-                <th>EtIket</th>
-                <th wIdth="100">Tür</th>
-                <th wIdth="80">Değer</th>
-                <th wIdth="80">Olasılık</th>
-                <th wIdth="60">Renk</th>
-                <th wIdth="60"></th>
+                <th width="30">#</th>
+                <th>Etiket</th>
+                <th width="100">Tür</th>
+                <th width="80">Değer</th>
+                <th width="80">Olasılık</th>
+                <th width="60">Renk</th>
+                <th width="60"></th>
               </tr>
             </thead>
-            <tbody Id="segmentsLIst">
-              ${ typeof game !== 'undefIned' && game.segments ? game.segments.map((seg, Index) => \`
-                <tr data-Id="\${ seg.Id }">
-                  <td><span class="badge bg-secondary">\${ Index + 1 }</span></td>
+            <tbody id="segmentsList">
+              ${ typeof game !== 'undefined' && game.segments ? game.segments.map((seg, index) => \`
+                <tr data-id="\${ seg.id }">
+                  <td><span class="badge bg-secondary">\${ index + 1 }</span></td>
                   <td>
-                    <Input type="text" class="form-control form-control-sm segment-label" value="\${ seg.label }">
+                    <input type="text" class="form-control form-control-sm segment-label" value="\${ seg.label }">
                   </td>
                   <td>
                     <select class="form-select form-select-sm segment-type">
-                      <optIon value="PERCENTAGE" \${ seg.type === 'PERCENTAGE' ? 'selected' : '' }>%</optIon>
-                      <optIon value="FIXED_AMOUNT" \${ seg.type === 'FIXED_AMOUNT' ? 'selected' : '' }>$</optIon>
-                      <optIon value="FREE_SHIPPING" \${ seg.type === 'FREE_SHIPPING' ? 'selected' : '' }>Kargo</optIon>
-                      <optIon value="NO_PRIZE" \${ seg.type === 'NO_PRIZE' ? 'selected' : '' }>Yok</optIon>
+                      <option value="PERCENTAGE" \${ seg.type === 'PERCENTAGE' ? 'selected' : '' }>%</option>
+                      <option value="FIXED_AMOUNT" \${ seg.type === 'FIXED_AMOUNT' ? 'selected' : '' }>$</option>
+                      <option value="FREE_SHIPPING" \${ seg.type === 'FREE_SHIPPING' ? 'selected' : '' }>Kargo</option>
+                      <option value="NO_PRIZE" \${ seg.type === 'NO_PRIZE' ? 'selected' : '' }>Yok</option>
                     </select>
                   </td>
                   <td>
-                    <Input type="number" class="form-control form-control-sm segment-value" value="\${ seg.value }" mIn="0">
+                    <input type="number" class="form-control form-control-sm segment-value" value="\${ seg.value }" min="0">
                   </td>
                   <td>
-                    <dIv class="Input-group Input-group-sm">
-                      <Input type="number" class="form-control segment-probabIlIty" value="\${ Math.round(seg.probabIlIty * 100) }" mIn="0" max="100">
-                      <span class="Input-group-text">%</span>
-                    </dIv>
+                    <div class="input-group input-group-sm">
+                      <input type="number" class="form-control segment-probability" value="\${ Math.round(seg.probability * 100) }" min="0" max="100">
+                      <span class="input-group-text">%</span>
+                    </div>
                   </td>
                   <td>
-                    <Input type="color" class="form-control form-control-color segment-color" value="\${ seg.color }" style="wIdth: 40px; heIght: 32px; paddIng: 2px;">
+                    <input type="color" class="form-control form-control-color segment-color" value="\${ seg.color }" style="width: 40px; height: 32px; padding: 2px;">
                   </td>
                   <td>
-                    <button type="button" class="btn btn-sm btn-Icon btn-outlIne-danger delete-segment">
-                      <I class="tI tI-trash"></I>
+                    <button type="button" class="btn btn-sm btn-icon btn-outline-danger delete-segment">
+                      <i class="ti ti-trash"></i>
                     </button>
                   </td>
                 </tr>
-              \`).joIn('') : '' }
+              \`).join('') : '' }
             </tbody>
           </table>
-        </dIv>
-      </dIv>
-      <dIv class="card-footer">
+        </div>
+      </div>
+      <div class="card-footer">
         <small class="text-muted">
-          <I class="tI tI-Info-cIrcle me-1"></I>
-          Toplam olasılık: <strong Id="totalProbabIlIty">100</strong>%
+          <i class="ti ti-info-circle me-1"></i>
+          Toplam olasılık: <strong id="totalProbability">100</strong>%
         </small>
-      </dIv>
-    </dIv>
+      </div>
+    </div>
 
-  </dIv>
+  </div>
 
-  <!-- RIght Column - PrevIew -->
-  <dIv class="col-lg-6">
-    <dIv class="card stIcky-top" style="top: 100px;">
-      <dIv class="card-header">
-        <h5 class="card-tItle mb-0">ÖnIzleme</h5>
-      </dIv>
-      <dIv class="card-body text-center">
+  <!-- Right Column - Preview -->
+  <div class="col-lg-6">
+    <div class="card sticky-top" style="top: 100px;">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Önizleme</h5>
+      </div>
+      <div class="card-body text-center">
 
-        <!-- Wheel PrevIew -->
-        <dIv class="wheel-prevIew-contaIner mb-4">
-          <svg Id="wheelPrevIew" wIdth="300" heIght="300" vIewBox="0 0 300 300">
-            <!-- Wheel wIll be rendered here -->
+        <!-- Wheel Preview -->
+        <div class="wheel-preview-container mb-4">
+          <svg id="wheelPreview" width="300" height="300" viewBox="0 0 300 300">
+            <!-- Wheel will be rendered here -->
           </svg>
-        </dIv>
+        </div>
 
-        <button type="button" class="btn btn-lg btn-prImary" Id="spInDemoBtn">
-          <I class="tI tI-rotate-clockwIse me-2"></I>
-          Demo ÇevIr
+        <button type="button" class="btn btn-lg btn-primary" id="spinDemoBtn">
+          <i class="ti ti-rotate-clockwise me-2"></i>
+          Demo Çevir
         </button>
 
-      </dIv>
-    </dIv>
-  </dIv>
+      </div>
+    </div>
+  </div>
 
-</dIv>
+</div>
 
 <style>
-  .wheel-prevIew-contaIner {
-    posItIon: relatIve;
-    dIsplay: InlIne-block;
+  .wheel-preview-container {
+    position: relative;
+    display: inline-block;
   }
 
-  .wheel-prevIew-contaIner::before {
+  .wheel-preview-container::before {
     content: '';
-    posItIon: absolute;
+    position: absolute;
     top: 0;
     left: 50%;
     transform: translateX(-50%);
-    wIdth: 0;
-    heIght: 0;
-    border-left: 15px solId transparent;
-    border-rIght: 15px solId transparent;
-    border-top: 25px solId #333;
-    z-Index: 10;
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 25px solid #333;
+    z-index: 10;
   }
 
-  #wheelPrevIew {
-    transItIon: transform 5s cubIc-bezIer(0.17, 0.67, 0.12, 0.99);
+  #wheelPreview {
+    transition: transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99);
   }
 
-  .spInnIng {
-    anImatIon: none !Important;
+  .spinning {
+    animation: none !important;
   }
 </style>
 
-<scrIpt>
-document.addEventLIstener('DOMContentLoaded', functIon() {
-  const wheelPrevIew = document.getElementById('wheelPrevIew');
-  const segmentsLIst = document.getElementById('segmentsLIst');
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const wheelPreview = document.getElementById('wheelPreview');
+  const segmentsList = document.getElementById('segmentsList');
 
-  // Render wheel prevIew
-  functIon renderWheel() {
+  // Render wheel preview
+  function renderWheel() {
     const segments = [];
-    segmentsLIst.querySelectorAll('tr').forEach(row => {
+    segmentsList.querySelectorAll('tr').forEach(row => {
       segments.push({
         label: row.querySelector('.segment-label').value,
         color: row.querySelector('.segment-color').value,
-        probabIlIty: parseFloat(row.querySelector('.segment-probabIlIty').value) / 100
+        probability: parseFloat(row.querySelector('.segment-probability').value) / 100
       });
     });
 
-    If (segments.length === 0) return;
+    if (segments.length === 0) return;
 
     const centerX = 150;
     const centerY = 150;
-    const radIus = 140;
+    const radius = 140;
 
     let svg = '';
     let startAngle = 0;
-    const totalProbabIlIty = segments.reduce((sum, s) => sum + s.probabIlIty, 0);
+    const totalProbability = segments.reduce((sum, s) => sum + s.probability, 0);
 
-    segments.forEach((segment, Index) => {
-      const slIceAngle = (segment.probabIlIty / totalProbabIlIty) * 360;
-      const endAngle = startAngle + slIceAngle;
+    segments.forEach((segment, index) => {
+      const sliceAngle = (segment.probability / totalProbability) * 360;
+      const endAngle = startAngle + sliceAngle;
 
       const startRad = (startAngle - 90) * Math.PI / 180;
       const endRad = (endAngle - 90) * Math.PI / 180;
 
-      const x1 = centerX + radIus * Math.cos(startRad);
-      const y1 = centerY + radIus * Math.sIn(startRad);
-      const x2 = centerX + radIus * Math.cos(endRad);
-      const y2 = centerY + radIus * Math.sIn(endRad);
+      const x1 = centerX + radius * Math.cos(startRad);
+      const y1 = centerY + radius * Math.sin(startRad);
+      const x2 = centerX + radius * Math.cos(endRad);
+      const y2 = centerY + radius * Math.sin(endRad);
 
-      const largeArc = slIceAngle > 180 ? 1 : 0;
+      const largeArc = sliceAngle > 180 ? 1 : 0;
 
-      svg += \`<path d="M\${centerX},\${centerY} L\${x1},\${y1} A\${radIus},\${radIus} 0 \${largeArc},1 \${x2},\${y2} Z" fIll="\${segment.color}" stroke="#fff" stroke-wIdth="2"/>\`;
+      svg += \`<path d="M\${centerX},\${centerY} L\${x1},\${y1} A\${radius},\${radius} 0 \${largeArc},1 \${x2},\${y2} Z" fill="\${segment.color}" stroke="#fff" stroke-width="2"/>\`;
 
       // Label
-      const mIdAngle = (startAngle + slIceAngle / 2 - 90) * Math.PI / 180;
-      const labelX = centerX + (radIus * 0.65) * Math.cos(mIdAngle);
-      const labelY = centerY + (radIus * 0.65) * Math.sIn(mIdAngle);
-      const rotatIon = startAngle + slIceAngle / 2;
+      const midAngle = (startAngle + sliceAngle / 2 - 90) * Math.PI / 180;
+      const labelX = centerX + (radius * 0.65) * Math.cos(midAngle);
+      const labelY = centerY + (radius * 0.65) * Math.sin(midAngle);
+      const rotation = startAngle + sliceAngle / 2;
 
-      svg += \`<text x="\${labelX}" y="\${labelY}" text-anchor="mIddle" domInant-baselIne="mIddle" fIll="#fff" font-sIze="12" font-weIght="600" transform="rotate(\${rotatIon}, \${labelX}, \${labelY})">\${segment.label}</text>\`;
+      svg += \`<text x="\${labelX}" y="\${labelY}" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-size="12" font-weight="600" transform="rotate(\${rotation}, \${labelX}, \${labelY})">\${segment.label}</text>\`;
 
       startAngle = endAngle;
     });
 
-    // Center cIrcle
-    svg += \`<cIrcle cx="\${centerX}" cy="\${centerY}" r="20" fIll="#333"/>\`;
+    // Center circle
+    svg += \`<circle cx="\${centerX}" cy="\${centerY}" r="20" fill="#333"/>\`;
 
-    wheelPrevIew.InnerHTML = svg;
+    wheelPreview.innerHTML = svg;
 
-    // Update total probabIlIty
-    document.getElementById('totalProbabIlIty').textContent = Math.round(totalProbabIlIty * 100);
+    // Update total probability
+    document.getElementById('totalProbability').textContent = Math.round(totalProbability * 100);
   }
 
-  // InItIal render
+  // Initial render
   renderWheel();
 
   // Update on changes
-  segmentsLIst.addEventLIstener('Input', renderWheel);
+  segmentsList.addEventListener('input', renderWheel);
 
-  // Demo spIn
-  document.getElementById('spInDemoBtn').addEventLIstener('clIck', functIon() {
+  // Demo spin
+  document.getElementById('spinDemoBtn').addEventListener('click', function() {
     const randomAngle = 1800 + Math.random() * 360;
-    wheelPrevIew.style.transform = \`rotate(\${randomAngle}deg)\`;
+    wheelPreview.style.transform = \`rotate(\${randomAngle}deg)\`;
 
-    setTImeout(() => {
-      wheelPrevIew.style.transItIon = 'none';
-      wheelPrevIew.style.transform = 'rotate(0deg)';
-      setTImeout(() => {
-        wheelPrevIew.style.transItIon = 'transform 5s cubIc-bezIer(0.17, 0.67, 0.12, 0.99)';
+    setTimeout(() => {
+      wheelPreview.style.transition = 'none';
+      wheelPreview.style.transform = 'rotate(0deg)';
+      setTimeout(() => {
+        wheelPreview.style.transition = 'transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
       }, 50);
     }, 5500);
   });
 
   // Add segment
-  document.getElementById('addSegmentBtn').addEventLIstener('clIck', functIon() {
-    const Index = segmentsLIst.querySelectorAll('tr').length + 1;
+  document.getElementById('addSegmentBtn').addEventListener('click', function() {
+    const index = segmentsList.querySelectorAll('tr').length + 1;
     const colors = ['#7367F0', '#28C76F', '#FF9F43', '#EA5455', '#00CFE8', '#82868B'];
-    const color = colors[Index % colors.length];
+    const color = colors[index % colors.length];
 
     const row = document.createElement('tr');
-    row.InnerHTML = \`
-      <td><span class="badge bg-secondary">\${Index}</span></td>
-      <td><Input type="text" class="form-control form-control-sm segment-label" value="YenI Segment"></td>
+    row.innerHTML = \`
+      <td><span class="badge bg-secondary">\${index}</span></td>
+      <td><input type="text" class="form-control form-control-sm segment-label" value="Yeni Segment"></td>
       <td>
         <select class="form-select form-select-sm segment-type">
-          <optIon value="PERCENTAGE">%</optIon>
-          <optIon value="FIXED_AMOUNT">$</optIon>
-          <optIon value="FREE_SHIPPING">Kargo</optIon>
-          <optIon value="NO_PRIZE">Yok</optIon>
+          <option value="PERCENTAGE">%</option>
+          <option value="FIXED_AMOUNT">$</option>
+          <option value="FREE_SHIPPING">Kargo</option>
+          <option value="NO_PRIZE">Yok</option>
         </select>
       </td>
-      <td><Input type="number" class="form-control form-control-sm segment-value" value="5" mIn="0"></td>
+      <td><input type="number" class="form-control form-control-sm segment-value" value="5" min="0"></td>
       <td>
-        <dIv class="Input-group Input-group-sm">
-          <Input type="number" class="form-control segment-probabIlIty" value="10" mIn="0" max="100">
-          <span class="Input-group-text">%</span>
-        </dIv>
+        <div class="input-group input-group-sm">
+          <input type="number" class="form-control segment-probability" value="10" min="0" max="100">
+          <span class="input-group-text">%</span>
+        </div>
       </td>
-      <td><Input type="color" class="form-control form-control-color segment-color" value="\${color}" style="wIdth: 40px; heIght: 32px; paddIng: 2px;"></td>
+      <td><input type="color" class="form-control form-control-color segment-color" value="\${color}" style="width: 40px; height: 32px; padding: 2px;"></td>
       <td>
-        <button type="button" class="btn btn-sm btn-Icon btn-outlIne-danger delete-segment">
-          <I class="tI tI-trash"></I>
+        <button type="button" class="btn btn-sm btn-icon btn-outline-danger delete-segment">
+          <i class="ti ti-trash"></i>
         </button>
       </td>
     \`;
-    segmentsLIst.appendChIld(row);
+    segmentsList.appendChild(row);
     renderWheel();
   });
 
   // Delete segment
-  segmentsLIst.addEventLIstener('clIck', functIon(e) {
-    If (e.target.closest('.delete-segment')) {
+  segmentsList.addEventListener('click', function(e) {
+    if (e.target.closest('.delete-segment')) {
       e.target.closest('tr').remove();
       renderWheel();
     }
   });
 
   // Save
-  document.getElementById('saveBtn').addEventLIstener('clIck', async functIon() {
+  document.getElementById('saveBtn').addEventListener('click', async function() {
     const gameId = document.querySelector('[name="gameId"]').value;
     const segments = [];
 
-    segmentsLIst.querySelectorAll('tr').forEach((row, Index) => {
+    segmentsList.querySelectorAll('tr').forEach((row, index) => {
       segments.push({
         label: row.querySelector('.segment-label').value,
         type: row.querySelector('.segment-type').value,
         value: parseFloat(row.querySelector('.segment-value').value) || 0,
-        probabIlIty: parseFloat(row.querySelector('.segment-probabIlIty').value) / 100,
+        probability: parseFloat(row.querySelector('.segment-probability').value) / 100,
         color: row.querySelector('.segment-color').value,
-        order: Index
+        order: index
       });
     });
 
-    // Save game settIngs
-    awaIt fetch(\`/apI/games/\${gameId}\`, {
+    // Save game settings
+    await fetch(\`/api/games/\${gameId}\`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'applIcatIon/json' },
-      body: JSON.strIngIfy({
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         name: document.querySelector('[name="name"]').value,
-        IsActIve: document.querySelector('[name="IsActIve"]').checked,
-        trIgger: document.querySelector('[name="trIgger"]').value,
-        trIggerValue: parseInt(document.querySelector('[name="trIggerValue"]').value)
+        isActive: document.querySelector('[name="isActive"]').checked,
+        trigger: document.querySelector('[name="trigger"]').value,
+        triggerValue: parseInt(document.querySelector('[name="triggerValue"]').value)
       })
     });
 
     // Save segments
-    awaIt fetch(\`/apI/games/\${gameId}/segments\`, {
+    await fetch(\`/api/games/\${gameId}/segments\`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'applIcatIon/json' },
-      body: JSON.strIngIfy({ segments })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ segments })
     });
 
-    alert('KaydedIldI!');
+    alert('Kaydedildi!');
   });
 });
-</scrIpt>
+</script>
 
-`, actIve: 'spIn-wheel' }) %>
+`, active: 'spin-wheel' }) %>
 

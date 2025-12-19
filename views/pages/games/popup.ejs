@@ -1,74 +1,74 @@
-<%- Include('../../layouts/admIn', { body: `
+<%- include('../../layouts/admin', { body: `
 
 <!-- Page Header -->
-<dIv class="d-flex justIfy-content-between alIgn-Items-center mb-4">
-  <dIv>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
     <h4 class="mb-1">
-      <I class="tI tI-wIndow me-2"></I>
+      <i class="ti ti-window me-2"></i>
       Popup
     </h4>
     <p class="text-muted mb-0">Popup ayarlarını yapılandırın</p>
-  </dIv>
-  <dIv class="d-flex gap-2">
-    <button type="button" class="btn btn-prImary" Id="saveBtn">
-      <I class="tI tI-devIce-floppy me-1"></I> Kaydet
+  </div>
+  <div class="d-flex gap-2">
+    <button type="button" class="btn btn-primary" id="saveBtn">
+      <i class="ti ti-device-floppy me-1"></i> Kaydet
     </button>
-  </dIv>
-</dIv>
+  </div>
+</div>
 
-<dIv class="row g-4">
-  <dIv class="col-lg-8">
-    <dIv class="card">
-      <dIv class="card-header">
-        <h5 class="card-tItle mb-0">Genel Ayarlar</h5>
-      </dIv>
-      <dIv class="card-body">
-        <form Id="gameSettIngsForm">
-          <Input type="hIdden" name="gameId" value="${ typeof game !== 'undefIned' ? game.Id : '' }">
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Genel Ayarlar</h5>
+      </div>
+      <div class="card-body">
+        <form id="gameSettingsForm">
+          <input type="hidden" name="gameId" value="${ typeof game !== 'undefined' ? game.id : '' }">
 
-          <dIv class="mb-3">
+          <div class="mb-3">
             <label class="form-label">Popup Adı</label>
-            <Input type="text" class="form-control" name="name" value="${ typeof game !== 'undefIned' ? game.name : 'İndIrIm Popup' }">
-          </dIv>
+            <input type="text" class="form-control" name="name" value="${ typeof game !== 'undefined' ? game.name : 'İndirim Popup' }">
+          </div>
 
-          <dIv class="mb-3">
+          <div class="mb-3">
             <label class="form-label">Durum</label>
-            <dIv class="form-check form-swItch">
-              <Input class="form-check-Input" type="checkbox" name="IsActIve" Id="IsActIve" ${ typeof game !== 'undefIned' && game.IsActIve ? 'checked' : '' }>
-              <label class="form-check-label" for="IsActIve">AktIf</label>
-            </dIv>
-          </dIv>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" name="isActive" id="isActive" ${ typeof game !== 'undefined' && game.isActive ? 'checked' : '' }>
+              <label class="form-check-label" for="isActive">Aktif</label>
+            </div>
+          </div>
 
-          <dIv class="mb-3">
-            <label class="form-label">TetIkleyIcI</label>
-            <select class="form-select" name="trIgger">
-              <optIon value="PAGE_LOAD">Sayfa YüklendIğInde</optIon>
-              <optIon value="TIME_ON_PAGE">X SanIye Sonra</optIon>
-              <optIon value="SCROLL_DEPTH">%X Scroll Sonrası</optIon>
-              <optIon value="EXIT_INTENT" selected>Çıkış NIyetInde</optIon>
+          <div class="mb-3">
+            <label class="form-label">Tetikleyici</label>
+            <select class="form-select" name="trigger">
+              <option value="PAGE_LOAD">Sayfa Yüklendiğinde</option>
+              <option value="TIME_ON_PAGE">X Saniye Sonra</option>
+              <option value="SCROLL_DEPTH">%X Scroll Sonrası</option>
+              <option value="EXIT_INTENT" selected>Çıkış Niyetinde</option>
             </select>
-          </dIv>
+          </div>
         </form>
-      </dIv>
-    </dIv>
-  </dIv>
+      </div>
+    </div>
+  </div>
 
-  <dIv class="col-lg-4">
-    <dIv class="card">
-      <dIv class="card-header">
-        <h5 class="card-tItle mb-0">ÖnIzleme</h5>
-      </dIv>
-      <dIv class="card-body text-center">
-        <dIv class="popup-prevIew" style="background: whIte; border-radIus: 12px; paddIng: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
-          <I class="tI tI-gIft" style="font-sIze: 3rem; color: #7367f0; margIn-bottom: 1rem;"></I>
-          <h5>Özel TeklIf!</h5>
-          <p class="text-muted">Ayrılmadan önce sana özel IndIrIm</p>
-          <button class="btn btn-prImary">İndIrImI Al</button>
-        </dIv>
-      </dIv>
-    </dIv>
-  </dIv>
-</dIv>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Önizleme</h5>
+      </div>
+      <div class="card-body text-center">
+        <div class="popup-preview" style="background: white; border-radius: 12px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
+          <i class="ti ti-gift" style="font-size: 3rem; color: #7367f0; margin-bottom: 1rem;"></i>
+          <h5>Özel Teklif!</h5>
+          <p class="text-muted">Ayrılmadan önce sana özel indirim</p>
+          <button class="btn btn-primary">İndirimi Al</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-`, actIve: 'popup' }) %>
+`, active: 'popup' }) %>
 

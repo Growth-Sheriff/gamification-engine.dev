@@ -1,112 +1,112 @@
-<%- Include('../layouts/admIn', { body: `
+<%- include('../layouts/admin', { body: `
 
 <!-- Page Header -->
-<dIv class="d-flex justIfy-content-between alIgn-Items-center mb-4">
-  <dIv>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
     <h4 class="mb-1">
-      <I class="tI tI-settIngs me-2"></I>
+      <i class="ti ti-settings me-2"></i>
       Ayarlar
     </h4>
-    <p class="text-muted mb-0">Uygulama ayarlarını yönetIn</p>
-  </dIv>
-</dIv>
+    <p class="text-muted mb-0">Uygulama ayarlarını yönetin</p>
+  </div>
+</div>
 
-<dIv class="row g-4">
+<div class="row g-4">
 
   <!-- Shop Info -->
-  <dIv class="col-lg-6">
-    <dIv class="card">
-      <dIv class="card-header">
-        <h5 class="card-tItle mb-0">Mağaza BIlgIlerI</h5>
-      </dIv>
-      <dIv class="card-body">
-        <dIv class="d-flex alIgn-Items-center mb-4">
-          <dIv class="avatar avatar-lg me-3">
-            <span class="avatar-InItIal rounded bg-prImary">
-              ${ typeof shopDetaIls !== 'undefIned' && shopDetaIls.name ? shopDetaIls.name.charAt(0).toUpperCase() : 'S' }
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Mağaza Bilgileri</h5>
+      </div>
+      <div class="card-body">
+        <div class="d-flex align-items-center mb-4">
+          <div class="avatar avatar-lg me-3">
+            <span class="avatar-initial rounded bg-primary">
+              ${ typeof shopDetails !== 'undefined' && shopDetails.name ? shopDetails.name.charAt(0).toUpperCase() : 'S' }
             </span>
-          </dIv>
-          <dIv>
-            <h5 class="mb-0">${ typeof shopDetaIls !== 'undefIned' ? shopDetaIls.name || 'Shop' : 'Shop' }</h5>
-            <small class="text-muted">${ typeof shopDetaIls !== 'undefIned' ? shopDetaIls.domaIn : '' }</small>
-          </dIv>
-        </dIv>
+          </div>
+          <div>
+            <h5 class="mb-0">${ typeof shopDetails !== 'undefined' ? shopDetails.name || 'Shop' : 'Shop' }</h5>
+            <small class="text-muted">${ typeof shopDetails !== 'undefined' ? shopDetails.domain : '' }</small>
+          </div>
+        </div>
 
-        <dIv class="mb-3">
-          <label class="form-label text-muted small">DomaIn</label>
-          <p class="mb-0">${ typeof shopDetaIls !== 'undefIned' ? shopDetaIls.domaIn : '' }</p>
-        </dIv>
+        <div class="mb-3">
+          <label class="form-label text-muted small">Domain</label>
+          <p class="mb-0">${ typeof shopDetails !== 'undefined' ? shopDetails.domain : '' }</p>
+        </div>
 
-        <dIv class="mb-3">
-          <label class="form-label text-muted small">EmaIl</label>
-          <p class="mb-0">${ typeof shopDetaIls !== 'undefIned' && shopDetaIls.emaIl ? shopDetaIls.emaIl : '-' }</p>
-        </dIv>
+        <div class="mb-3">
+          <label class="form-label text-muted small">Email</label>
+          <p class="mb-0">${ typeof shopDetails !== 'undefined' && shopDetails.email ? shopDetails.email : '-' }</p>
+        </div>
 
-        <dIv class="mb-0">
+        <div class="mb-0">
           <label class="form-label text-muted small">Durum</label>
           <p class="mb-0">
             <span class="badge badge-soft badge-soft-success">
-              <I class="tI tI-check me-1"></I> AktIf
+              <i class="ti ti-check me-1"></i> Aktif
             </span>
           </p>
-        </dIv>
-      </dIv>
-    </dIv>
-  </dIv>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- API Info -->
-  <dIv class="col-lg-6">
-    <dIv class="card">
-      <dIv class="card-header">
-        <h5 class="card-tItle mb-0">API BIlgIlerI</h5>
-      </dIv>
-      <dIv class="card-body">
-        <dIv class="mb-3">
-          <label class="form-label text-muted small">ShopIfy API VersIyonu</label>
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">API Bilgileri</h5>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label text-muted small">Shopify API Versiyonu</label>
           <p class="mb-0"><code>2025-10</code></p>
-        </dIv>
+        </div>
 
-        <dIv class="mb-3">
+        <div class="mb-3">
           <label class="form-label text-muted small">App Proxy URL</label>
-          <p class="mb-0"><code>https://gamIfIcatIon-engIne.dev/apI/proxy</code></p>
-        </dIv>
+          <p class="mb-0"><code>https://gamification-engine.dev/api/proxy</code></p>
+        </div>
 
-        <dIv class="mb-0">
-          <label class="form-label text-muted small">WIdget Embed Code</label>
-          <dIv class="bg-lIght rounded p-3">
-            <code style="font-sIze: 0.75rem; word-break: break-all;">
-              &lt;scrIpt src="https://gamIfIcatIon-engIne.dev/wIdget.js" data-shop="${ typeof shopDetaIls !== 'undefIned' ? shopDetaIls.domaIn : '' }"&gt;&lt;/scrIpt&gt;
+        <div class="mb-0">
+          <label class="form-label text-muted small">Widget Embed Code</label>
+          <div class="bg-light rounded p-3">
+            <code style="font-size: 0.75rem; word-break: break-all;">
+              &lt;script src="https://gamification-engine.dev/widget.js" data-shop="${ typeof shopDetails !== 'undefined' ? shopDetails.domain : '' }"&gt;&lt;/script&gt;
             </code>
-          </dIv>
-        </dIv>
-      </dIv>
-    </dIv>
-  </dIv>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Danger Zone -->
-  <dIv class="col-12">
-    <dIv class="card border-danger">
-      <dIv class="card-header bg-danger text-whIte">
-        <h5 class="card-tItle mb-0 text-whIte">
-          <I class="tI tI-alert-trIangle me-2"></I>
-          TehlIkelI Bölge
+  <div class="col-12">
+    <div class="card border-danger">
+      <div class="card-header bg-danger text-white">
+        <h5 class="card-title mb-0 text-white">
+          <i class="ti ti-alert-triangle me-2"></i>
+          Tehlikeli Bölge
         </h5>
-      </dIv>
-      <dIv class="card-body">
-        <dIv class="d-flex justIfy-content-between alIgn-Items-center">
-          <dIv>
-            <h6 class="mb-1">Tüm VerIlerI SIl</h6>
-            <p class="text-muted mb-0 small">Tüm oyunlar, kurallar ve IndIrIm kodları sIlInecek. Bu Işlem gerI alınamaz.</p>
-          </dIv>
-          <button type="button" class="btn btn-danger" onclIck="If(confIrm('Tüm verIlerI sIlmek IstedIğInIze emIn mIsInIz? Bu Işlem gerI alınamaz!')) alert('Bu özellIk henüz aktIf değIl.')">
-            <I class="tI tI-trash me-1"></I> VerIlerI SIl
+      </div>
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="mb-1">Tüm Verileri Sil</h6>
+            <p class="text-muted mb-0 small">Tüm oyunlar, kurallar ve indirim kodları silinecek. Bu işlem geri alınamaz.</p>
+          </div>
+          <button type="button" class="btn btn-danger" onclick="if(confirm('Tüm verileri silmek istediğinize emin misiniz? Bu işlem geri alınamaz!')) alert('Bu özellik henüz aktif değil.')">
+            <i class="ti ti-trash me-1"></i> Verileri Sil
           </button>
-        </dIv>
-      </dIv>
-    </dIv>
-  </dIv>
+        </div>
+      </div>
+    </div>
+  </div>
 
-</dIv>
+</div>
 
-`, actIve: 'settIngs' }) %>
+`, active: 'settings' }) %>
 
