@@ -184,16 +184,7 @@ export class ShopifyClient {
     }
 
     // Percentage or fixed amount discount
-    if (params.percentage) {
-      customerGetsValue = `percentageValue: ${params.percentage / 100}`;
-    } else if (params.fixedAmount) {
-      customerGetsValue = `
-        discountAmount: {
-          amount: ${params.fixedAmount}
-          appliesOnEachItem: false
-        }
-      `;
-    } else {
+    if (!params.percentage && !params.fixedAmount) {
       throw new Error('Either percentage or fixedAmount must be provided');
     }
 
