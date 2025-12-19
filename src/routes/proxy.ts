@@ -43,10 +43,8 @@ interface InitRequest {
  */
 router.post('/init', async (req: Request, res: Response) => {
   try {
-    // Get shop domain from App Proxy header, query, or body
-    const shopDomain = req.get('X-Shopify-Shop-Domain') ||
-                       req.query.shop as string ||
-                       req.body?.shop as string;
+    // Get shop domain from App Proxy header or query
+    const shopDomain = req.get('X-Shopify-Shop-Domain') || req.query.shop as string;
 
     if (!shopDomain) {
       res.status(400).json({ success: false, error: 'Missing shop domain' });
@@ -119,7 +117,7 @@ router.post('/init', async (req: Request, res: Response) => {
     });
 
     // Get active game
-    let activeGame = await prisma.game.findFirst({
+    const activeGame = await prisma.game.findFirst({
       where: {
         shopId: shop.id,
         isActive: true,
@@ -190,133 +188,6 @@ router.post('/init', async (req: Request, res: Response) => {
             cooldownRemaining = Math.max(0, cooldownEnd.getTime() - Date.now());
           }
         }
-      }
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // TARGETING RULE EVALUATION
-    // ═══════════════════════════════════════════════════════════════════════
-
-    let targetedGameId: string | null = null;
-
-    // Get all active targeting rules for this shop
-    const targetingRules = await prisma.targetingRule.findMany({
-      where: {
-        shopId: shop.id,
-        isActive: true,
-      },
-      orderBy: { priority: 'desc' },
-    });
-
-    // Evaluate each rule
-    for (const rule of targetingRules) {
-      let matches = true;
-
-      // Page type check
-      if (rule.pageType && rule.pageType.length > 0) {
-        const pageType = body.page?.includes('/products/') ? 'product' :
-                        body.page?.includes('/collections/') ? 'collection' :
-                        body.page === '/' ? 'index' :
-                        body.page?.includes('/cart') ? 'cart' : 'page';
-        if (!rule.pageType.includes(pageType)) {
-          matches = false;
-        }
-      }
-
-      // Device check
-      if (matches && rule.devices && rule.devices.length > 0) {
-        if (!rule.devices.includes(visitor.device || 'desktop')) {
-          matches = false;
-        }
-      }
-
-      // Visitor type check
-      if (matches && rule.visitorType !== 'ALL') {
-        const isNew = isNewVisitor;
-        const isCustomer = !!visitor.customerId;
-        const isLoggedIn = !!visitor.email;
-
-        switch (rule.visitorType) {
-          case 'NEW':
-            if (!isNew) matches = false;
-            break;
-          case 'RETURNING':
-            if (isNew) matches = false;
-            break;
-          case 'CUSTOMERS':
-            if (!isCustomer) matches = false;
-            break;
-          case 'NON_CUSTOMERS':
-            if (isCustomer) matches = false;
-            break;
-          case 'LOGGED_IN':
-            if (!isLoggedIn) matches = false;
-            break;
-          case 'NOT_LOGGED_IN':
-            if (isLoggedIn) matches = false;
-            break;
-        }
-      }
-
-      // Traffic source check
-      if (matches && rule.trafficSource && rule.trafficSource.length > 0) {
-        const source = body.utmSource ? 'paid' :
-                      body.referrer?.includes('google') ? 'organic' :
-                      body.referrer?.includes('facebook') || body.referrer?.includes('instagram') ? 'social' :
-                      !body.referrer ? 'direct' : 'referral';
-        if (!rule.trafficSource.includes(source)) {
-          matches = false;
-        }
-      }
-
-      // UTM checks
-      if (matches && rule.utmSource && rule.utmSource.length > 0 && body.utmSource) {
-        if (!rule.utmSource.includes(body.utmSource)) {
-          matches = false;
-        }
-      }
-
-      // Schedule check
-      if (matches && rule.scheduleEnabled) {
-        const now = new Date();
-        const currentDay = now.getDay();
-        const currentHour = now.getHours();
-
-        if (rule.scheduleDays && rule.scheduleDays.length > 0) {
-          if (!rule.scheduleDays.includes(currentDay)) {
-            matches = false;
-          }
-        }
-
-        if (matches && rule.scheduleStartHour !== null && rule.scheduleEndHour !== null) {
-          if (currentHour < rule.scheduleStartHour || currentHour > rule.scheduleEndHour) {
-            matches = false;
-          }
-        }
-      }
-
-      // If rule matches, use this game
-      if (matches) {
-        targetedGameId = rule.gameId;
-        break;
-      }
-    }
-
-    // If targeting found a game, override activeGame
-    if (targetedGameId && (!activeGame || activeGame.id !== targetedGameId)) {
-      const targetedGame = await prisma.game.findFirst({
-        where: {
-          id: targetedGameId,
-          shopId: shop.id,
-          isActive: true,
-        },
-        include: {
-          segments: { orderBy: { order: 'asc' } },
-        },
-      });
-
-      if (targetedGame) {
-        activeGame = targetedGame;
       }
     }
 
@@ -706,427 +577,33 @@ router.post('/track', async (req: Request, res: Response) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// CLAIM - Email ile indirim kodunu talep et
+// LOYALTY REDEEM - Puan harcama
 // ═══════════════════════════════════════════════════════════════════════════
 
-interface ClaimRequest {
-  sessionToken: string;
-  discountId: string;
-  email: string;
-}
-
-router.post('/claim', async (req: Request, res: Response) => {
+/**
+ * Redeem loyalty points for discount
+ * POST /api/proxy/loyalty/redeem
+ */
+router.post('/loyalty/redeem', async (req: Request, res: Response) => {
   try {
-    const { sessionToken, discountId, email } = req.body as ClaimRequest;
+    const { shop: shopDomain, customerId, email, pointsToRedeem } = req.body;
 
-    if (!sessionToken || !discountId || !email) {
+    if (!shopDomain || (!customerId && !email) || !pointsToRedeem) {
       res.status(400).json({ success: false, error: 'Missing required fields' });
       return;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      res.status(400).json({ success: false, error: 'Invalid email format' });
-      return;
-    }
-
-    const session = await prisma.session.findUnique({
-      where: { token: sessionToken },
-      include: { visitor: true },
-    });
-
-    if (!session || !session.isActive) {
-      res.status(401).json({ success: false, error: 'Invalid session' });
-      return;
-    }
-
-    const discount = await prisma.discount.findUnique({
-      where: { id: discountId },
-    });
-
-    if (!discount) {
-      res.status(404).json({ success: false, error: 'Discount not found' });
-      return;
-    }
-
-    if (discount.visitorId !== session.visitorId) {
-      res.status(403).json({ success: false, error: 'Unauthorized' });
-      return;
-    }
-
-    await prisma.visitor.update({
-      where: { id: session.visitorId },
-      data: { email },
-    });
-
-    res.json({
-      success: true,
-      data: {
-        code: discount.code,
-        type: discount.type,
-        value: discount.value,
-        expiresAt: discount.expiresAt,
-      },
-    });
-  } catch (error) {
-    console.error('Proxy claim error:', error);
-    res.status(500).json({ success: false, error: 'Internal server error' });
-  }
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// VERIFY - İndirim kodunu doğrula
-// ═══════════════════════════════════════════════════════════════════════════
-
-interface VerifyRequest {
-  code: string;
-  shop?: string;
-}
-
-router.post('/verify', async (req: Request, res: Response) => {
-  try {
-    const { code } = req.body as VerifyRequest;
-    const shopDomain = req.get('X-Shopify-Shop-Domain') ||
-                       req.query.shop as string ||
-                       req.body?.shop as string;
-
-    if (!code) {
-      res.status(400).json({ success: false, error: 'Missing discount code' });
-      return;
-    }
-
-    const discount = await prisma.discount.findFirst({
-      where: shopDomain ? {
-        code: code.toUpperCase(),
-        shop: { domain: shopDomain },
-      } : {
-        code: code.toUpperCase(),
-      },
-      include: { rule: true },
-    });
-
-    if (!discount) {
-      res.json({ success: true, data: { valid: false, reason: 'Code not found' } });
-      return;
-    }
-
-    if (discount.status === 'USED') {
-      res.json({ success: true, data: { valid: false, reason: 'Code already used' } });
-      return;
-    }
-
-    if (discount.status === 'EXPIRED' || new Date() > discount.expiresAt) {
-      res.json({ success: true, data: { valid: false, reason: 'Code expired' } });
-      return;
-    }
-
-    res.json({
-      success: true,
-      data: {
-        valid: true,
-        code: discount.code,
-        type: discount.type,
-        value: discount.value,
-        expiresAt: discount.expiresAt,
-        minOrderAmount: discount.rule?.minOrderAmount,
-      },
-    });
-  } catch (error) {
-    console.error('Proxy verify error:', error);
-    res.status(500).json({ success: false, error: 'Internal server error' });
-  }
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// STATUS - Session durumunu kontrol et
-// ═══════════════════════════════════════════════════════════════════════════
-
-interface StatusRequest {
-  sessionToken: string;
-}
-
-router.post('/status', async (req: Request, res: Response) => {
-  try {
-    const { sessionToken } = req.body as StatusRequest;
-
-    if (!sessionToken) {
-      res.status(400).json({ success: false, error: 'Missing session token' });
-      return;
-    }
-
-    const session = await prisma.session.findUnique({
-      where: { token: sessionToken },
-      include: {
-        visitor: {
-          include: {
-            shop: true,
-            plays: {
-              orderBy: { playedAt: 'desc' },
-              take: 5,
-              include: { game: true, discount: true },
-            },
-            discounts: {
-              where: { status: 'CREATED' },
-              orderBy: { createdAt: 'desc' },
-              take: 5,
-            },
-          },
-        },
-      },
-    });
-
-    if (!session) {
-      res.status(404).json({ success: false, error: 'Session not found' });
-      return;
-    }
-
-    const visitor = session.visitor;
-
-    const activeGame = await prisma.game.findFirst({
-      where: { shopId: visitor.shopId, isActive: true },
-    });
-
-    let canPlay = false;
-    if (activeGame) {
-      const rule = await prisma.discountRule.findFirst({
-        where: {
-          shopId: visitor.shopId,
-          isActive: true,
-          OR: [{ gameId: activeGame.id }, { gameId: null }],
-        },
-      });
-
-      if (rule) {
-        const cooldownStart = new Date();
-        cooldownStart.setHours(cooldownStart.getHours() - rule.cooldownHours);
-
-        const recentPlays = await prisma.play.count({
-          where: {
-            visitorId: visitor.id,
-            gameId: activeGame.id,
-            playedAt: { gte: cooldownStart },
-          },
-        });
-
-        canPlay = recentPlays < rule.maxPlaysPerVisitor;
-      }
-    }
-
-    res.json({
-      success: true,
-      data: {
-        sessionActive: session.isActive,
-        visitor: {
-          id: visitor.id,
-          email: visitor.email,
-          totalPlays: visitor.totalPlays,
-          totalWins: visitor.totalWins,
-        },
-        canPlay,
-        activeGame: activeGame ? { id: activeGame.id, type: activeGame.type, name: activeGame.name } : null,
-        recentPlays: visitor.plays.map(p => ({
-          id: p.id,
-          game: p.game.name,
-          result: p.result,
-          playedAt: p.playedAt,
-          discount: p.discount ? { code: p.discount.code, status: p.discount.status } : null,
-        })),
-        activeDiscounts: visitor.discounts.map(d => ({
-          code: d.code,
-          type: d.type,
-          value: d.value,
-          expiresAt: d.expiresAt,
-        })),
-      },
-    });
-  } catch (error) {
-    console.error('Proxy status error:', error);
-    res.status(500).json({ success: false, error: 'Internal server error' });
-  }
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// GAME - Aktif oyun ayarlarını al (public)
-// ═══════════════════════════════════════════════════════════════════════════
-
-router.get('/game', async (req: Request, res: Response) => {
-  try {
-    const shopDomain = req.get('X-Shopify-Shop-Domain') || req.query.shop as string;
-
-    if (!shopDomain) {
-      res.status(400).json({ success: false, error: 'Missing shop domain' });
-      return;
-    }
-
     const shop = await prisma.shop.findUnique({
       where: { domain: shopDomain },
+      include: { loyaltyProgram: true },
     });
 
-    if (!shop || !shop.isActive) {
-      res.status(404).json({ success: false, error: 'Shop not found' });
-      return;
-    }
-
-    const activeGame = await prisma.game.findFirst({
-      where: {
-        shopId: shop.id,
-        isActive: true,
-        OR: [{ startDate: null }, { startDate: { lte: new Date() } }],
-        AND: [{ OR: [{ endDate: null }, { endDate: { gte: new Date() } }] }],
-      },
-      include: {
-        segments: {
-          orderBy: { order: 'asc' },
-          select: { id: true, label: true, color: true },
-        },
-      },
-    });
-
-    if (!activeGame) {
-      res.json({ success: true, data: null });
-      return;
-    }
-
-    res.json({
-      success: true,
-      data: {
-        id: activeGame.id,
-        type: activeGame.type,
-        name: activeGame.name,
-        config: activeGame.config,
-        trigger: activeGame.trigger,
-        triggerValue: activeGame.triggerValue,
-        showOnPages: activeGame.showOnPages,
-        segments: activeGame.segments,
-      },
-    });
-  } catch (error) {
-    console.error('Proxy game error:', error);
-    res.status(500).json({ success: false, error: 'Internal server error' });
-  }
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// LOYALTY - Müşteri sadakat puanları
-// ═══════════════════════════════════════════════════════════════════════════
-
-interface LoyaltyBalanceRequest {
-  shop: string;
-  customerId?: string;
-  email?: string;
-}
-
-/**
- * Get loyalty balance
- * POST /api/proxy/loyalty/balance
- */
-router.post('/loyalty/balance', async (req: Request, res: Response) => {
-  try {
-    const { shop: shopDomain, customerId, email } = req.body as LoyaltyBalanceRequest;
-
-    if (!shopDomain) {
-      res.status(400).json({ success: false, error: 'Missing shop domain' });
-      return;
-    }
-
-    const shop = await prisma.shop.findUnique({
-      where: { domain: shopDomain },
-      include: { loyaltyProgram: { include: { tiers: { orderBy: { minPoints: 'asc' } } } } },
-    });
-
-    if (!shop || !shop.isActive || !shop.loyaltyProgram?.isActive) {
+    if (!shop || !shop.loyaltyProgram?.isActive) {
       res.status(404).json({ success: false, error: 'Loyalty program not found' });
       return;
     }
 
-    // Find visitor by customerId or email
-    let visitor = null;
-    if (customerId) {
-      visitor = await prisma.visitor.findFirst({
-        where: { shopId: shop.id, customerId },
-      });
-    }
-    if (!visitor && email) {
-      visitor = await prisma.visitor.findFirst({
-        where: { shopId: shop.id, email },
-      });
-    }
-
-    if (!visitor) {
-      // Return zero balance for new customers
-      res.json({
-        success: true,
-        data: {
-          points: 0,
-          tier: shop.loyaltyProgram.tiers[0]?.name || 'Bronze',
-          tierColor: shop.loyaltyProgram.tiers[0]?.color || '#CD7F32',
-          nextTier: shop.loyaltyProgram.tiers[1]?.name || null,
-          pointsToNext: shop.loyaltyProgram.tiers[1]?.minPoints || 0,
-        },
-      });
-      return;
-    }
-
-    // Get loyalty points
-    const loyaltyPoints = await prisma.loyaltyPoints.findUnique({
-      where: { visitorId_shopId: { visitorId: visitor.id, shopId: shop.id } },
-    });
-
-    const points = loyaltyPoints?.points || 0;
-    const tiers = shop.loyaltyProgram.tiers;
-
-    // Determine current tier
-    let currentTier = tiers[0];
-    let nextTier = tiers[1] || null;
-
-    for (let i = tiers.length - 1; i >= 0; i--) {
-      if (points >= tiers[i].minPoints) {
-        currentTier = tiers[i];
-        nextTier = tiers[i + 1] || null;
-        break;
-      }
-    }
-
-    res.json({
-      success: true,
-      data: {
-        points,
-        lifetimePoints: loyaltyPoints?.lifetimePoints || 0,
-        tier: currentTier.name,
-        tierColor: currentTier.color,
-        tierMultiplier: currentTier.pointMultiplier,
-        freeShipping: currentTier.freeShipping,
-        nextTier: nextTier?.name || null,
-        pointsToNext: nextTier ? Math.max(0, nextTier.minPoints - points) : 0,
-      },
-    });
-  } catch (error) {
-    console.error('Loyalty balance error:', error);
-    res.status(500).json({ success: false, error: 'Internal server error' });
-  }
-});
-
-/**
- * Get loyalty history
- * POST /api/proxy/loyalty/history
- */
-router.post('/loyalty/history', async (req: Request, res: Response) => {
-  try {
-    const { shop: shopDomain, customerId, email } = req.body as LoyaltyBalanceRequest;
-
-    if (!shopDomain) {
-      res.status(400).json({ success: false, error: 'Missing shop domain' });
-      return;
-    }
-
-    const shop = await prisma.shop.findUnique({
-      where: { domain: shopDomain },
-    });
-
-    if (!shop) {
-      res.status(404).json({ success: false, error: 'Shop not found' });
-      return;
-    }
+    const program = shop.loyaltyProgram;
 
     // Find visitor
     let visitor = null;
@@ -1142,190 +619,252 @@ router.post('/loyalty/history', async (req: Request, res: Response) => {
     }
 
     if (!visitor) {
-      res.json({ success: true, data: [] });
-      return;
-    }
-
-    const loyaltyPoints = await prisma.loyaltyPoints.findUnique({
-      where: { visitorId_shopId: { visitorId: visitor.id, shopId: shop.id } },
-      include: {
-        transactions: {
-          orderBy: { createdAt: 'desc' },
-          take: 20,
-        },
-      },
-    });
-
-    res.json({
-      success: true,
-      data: loyaltyPoints?.transactions || [],
-    });
-  } catch (error) {
-    console.error('Loyalty history error:', error);
-    res.status(500).json({ success: false, error: 'Internal server error' });
-  }
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// REFERRAL - Arkadaş getir
-// ═══════════════════════════════════════════════════════════════════════════
-
-/**
- * Get or create referral code
- * POST /api/proxy/referral/code
- */
-router.post('/referral/code', async (req: Request, res: Response) => {
-  try {
-    const { shop: shopDomain, customerId, email } = req.body;
-
-    if (!shopDomain || (!customerId && !email)) {
-      res.status(400).json({ success: false, error: 'Missing required fields' });
-      return;
-    }
-
-    const shop = await prisma.shop.findUnique({
-      where: { domain: shopDomain },
-      include: { referralProgram: true },
-    });
-
-    if (!shop || !shop.referralProgram?.isActive) {
-      res.status(404).json({ success: false, error: 'Referral program not found' });
-      return;
-    }
-
-    // Find or create visitor
-    let visitor = await prisma.visitor.findFirst({
-      where: {
-        shopId: shop.id,
-        OR: [
-          { customerId: customerId || undefined },
-          { email: email || undefined },
-        ],
-      },
-    });
-
-    if (!visitor) {
       res.status(404).json({ success: false, error: 'Customer not found' });
       return;
     }
 
-    // Check for existing referral code
-    let referral = await prisma.referral.findFirst({
-      where: {
-        programId: shop.referralProgram.id,
-        referrerVisitorId: visitor.id,
+    // Get loyalty points
+    const loyaltyPoints = await prisma.loyaltyPoints.findUnique({
+      where: { visitorId_shopId: { visitorId: visitor.id, shopId: shop.id } },
+    });
+
+    if (!loyaltyPoints || loyaltyPoints.points < pointsToRedeem) {
+      res.status(400).json({ success: false, error: 'Insufficient points' });
+      return;
+    }
+
+    if (pointsToRedeem < program.minRedeemPoints) {
+      res.status(400).json({ success: false, error: `Minimum ${program.minRedeemPoints} puan gerekli` });
+      return;
+    }
+
+    // Calculate discount value
+    const discountValue = (pointsToRedeem / program.pointsPerDiscount) * program.discountValue;
+
+    // Generate discount code
+    const discountCode = `PUAN-${nanoid(8).toUpperCase()}`;
+
+    // Create discount in Shopify
+    const shopifyClient = createShopifyClient({
+      shopDomain: shop.domain,
+      accessToken: shop.accessToken,
+    });
+
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
+
+    try {
+      await shopifyClient.createDiscountCode({
+        title: `Sadakat Puanı - ${discountValue.toFixed(2)} TL`,
+        code: discountCode,
+        fixedAmount: discountValue,
+        startsAt: formatShopifyDate(now),
+        endsAt: formatShopifyDate(expiresAt),
+        usageLimit: 1,
+        appliesOncePerCustomer: true,
+      });
+    } catch (shopifyError) {
+      console.error('Shopify discount error:', shopifyError);
+      res.status(500).json({ success: false, error: 'Failed to create discount' });
+      return;
+    }
+
+    // Deduct points
+    await prisma.loyaltyPoints.update({
+      where: { id: loyaltyPoints.id },
+      data: {
+        points: { decrement: pointsToRedeem },
       },
     });
 
-    if (!referral) {
-      // Generate unique code
-      const code = `REF-${nanoid(8).toUpperCase()}`;
+    // Create transaction
+    await prisma.pointTransaction.create({
+      data: {
+        loyaltyId: loyaltyPoints.id,
+        type: 'REDEEM',
+        points: -pointsToRedeem,
+        description: `${discountValue.toFixed(2)} TL indirim kodu: ${discountCode}`,
+      },
+    });
 
-      referral = await prisma.referral.create({
-        data: {
-          programId: shop.referralProgram.id,
-          referrerVisitorId: visitor.id,
-          code,
-        },
-      });
-    }
+    // Store discount
+    await prisma.discount.create({
+      data: {
+        shopId: shop.id,
+        visitorId: visitor.id,
+        code: discountCode,
+        type: 'FIXED_AMOUNT',
+        value: discountValue,
+        status: 'CREATED',
+        expiresAt,
+      },
+    });
 
     res.json({
       success: true,
       data: {
-        code: referral.code,
-        shareUrl: `https://${shopDomain}?ref=${referral.code}`,
-        referrerReward: shop.referralProgram.referrerValue,
-        refereeReward: shop.referralProgram.refereeValue,
+        code: discountCode,
+        value: discountValue,
+        expiresAt,
+        remainingPoints: loyaltyPoints.points - pointsToRedeem,
       },
     });
   } catch (error) {
-    console.error('Referral code error:', error);
+    console.error('Loyalty redeem error:', error);
     res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });
 
-/**
- * Apply referral code
- * POST /api/proxy/referral/apply
- */
-router.post('/referral/apply', async (req: Request, res: Response) => {
-  try {
-    const { shop: shopDomain, code, email } = req.body;
+// ═══════════════════════════════════════════════════════════════════════════
+// CART VALUE CHECK - Sepet değeri kontrolü
+// ═══════════════════════════════════════════════════════════════════════════
 
-    if (!shopDomain || !code || !email) {
+/**
+ * Check cart value for targeting
+ * POST /api/proxy/cart/check
+ */
+router.post('/cart/check', async (req: Request, res: Response) => {
+  try {
+    const { shop: shopDomain, cartValue, cartItems, sessionToken } = req.body;
+
+    if (!shopDomain || cartValue === undefined) {
       res.status(400).json({ success: false, error: 'Missing required fields' });
       return;
     }
 
     const shop = await prisma.shop.findUnique({
       where: { domain: shopDomain },
-      include: { referralProgram: true },
     });
 
-    if (!shop || !shop.referralProgram?.isActive) {
-      res.status(404).json({ success: false, error: 'Referral program not found' });
+    if (!shop) {
+      res.status(404).json({ success: false, error: 'Shop not found' });
       return;
     }
 
-    // Find referral
-    const referral = await prisma.referral.findUnique({
-      where: { code },
-    });
-
-    if (!referral || referral.programId !== shop.referralProgram.id) {
-      res.status(404).json({ success: false, error: 'Invalid referral code' });
-      return;
-    }
-
-    if (referral.refereeVisitorId) {
-      res.status(400).json({ success: false, error: 'Referral code already used' });
-      return;
-    }
-
-    // Find or create referee visitor
-    let referee = await prisma.visitor.findFirst({
-      where: { shopId: shop.id, email },
-    });
-
-    if (!referee) {
-      referee = await prisma.visitor.create({
-        data: {
-          shopId: shop.id,
-          email,
-          fingerprint: `email_${email}`,
+    // Check targeting rules based on cart value
+    const matchingRules = await prisma.targetingRule.findMany({
+      where: {
+        shopId: shop.id,
+        isActive: true,
+        OR: [
+          { minCartValue: null },
+          { minCartValue: { lte: cartValue } },
+        ],
+        AND: [
+          { OR: [{ maxCartValue: null }, { maxCartValue: { gte: cartValue } }] },
+        ],
+      },
+      orderBy: { priority: 'desc' },
+      include: {
+        game: {
+          include: { segments: { orderBy: { order: 'asc' } } },
         },
-      });
-    }
-
-    // Check if referee is the same as referrer
-    if (referee.id === referral.referrerVisitorId) {
-      res.status(400).json({ success: false, error: 'Cannot use your own referral code' });
-      return;
-    }
-
-    // Update referral
-    await prisma.referral.update({
-      where: { id: referral.id },
-      data: {
-        refereeVisitorId: referee.id,
-        refereeRewarded: true, // Give immediate reward
       },
     });
+
+    // Check cart items count
+    const filteredRules = matchingRules.filter(rule => {
+      if (rule.minCartItems && cartItems < rule.minCartItems) return false;
+      if (rule.maxCartItems && cartItems > rule.maxCartItems) return false;
+      return true;
+    });
+
+    const triggerGame = filteredRules[0]?.game || null;
 
     res.json({
       success: true,
       data: {
-        reward: shop.referralProgram.refereeValue,
-        rewardType: shop.referralProgram.refereeReward,
-        message: `Tebrikler! ${shop.referralProgram.refereeValue} ${shop.referralProgram.refereeReward === 'POINTS' ? 'puan' : 'TL indirim'} kazandınız!`,
+        shouldTrigger: !!triggerGame,
+        game: triggerGame ? {
+          id: triggerGame.id,
+          type: triggerGame.type,
+          name: triggerGame.name,
+          config: triggerGame.config,
+        } : null,
       },
     });
   } catch (error) {
-    console.error('Referral apply error:', error);
+    console.error('Cart check error:', error);
     res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SOCIAL PROOF - Gerçek zamanlı kazanan bildirimleri
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Get recent winners for social proof
+ * POST /api/proxy/social-proof
+ */
+router.post('/social-proof', async (req: Request, res: Response) => {
+  try {
+    const { shop: shopDomain } = req.body;
+
+    if (!shopDomain) {
+      res.status(400).json({ success: false, error: 'Missing shop domain' });
+      return;
+    }
+
+    const shop = await prisma.shop.findUnique({
+      where: { domain: shopDomain },
+    });
+
+    if (!shop) {
+      res.status(404).json({ success: false, error: 'Shop not found' });
+      return;
+    }
+
+    // Get recent winners (last 24 hours)
+    const yesterday = new Date();
+    yesterday.setHours(yesterday.getHours() - 24);
+
+    const recentWins = await prisma.play.findMany({
+      where: {
+        game: { shopId: shop.id },
+        result: 'WIN',
+        playedAt: { gte: yesterday },
+      },
+      include: {
+        visitor: { select: { email: true } },
+        game: { select: { name: true } },
+      },
+      orderBy: { playedAt: 'desc' },
+      take: 20,
+    });
+
+    // Anonymize email addresses
+    const winners = recentWins.map(win => {
+      const email = win.visitor.email || 'Anonim';
+      const anonymized = email.includes('@')
+        ? email.split('@')[0].slice(0, 3) + '***@' + email.split('@')[1]
+        : email.slice(0, 3) + '***';
+
+      return {
+        name: anonymized,
+        prize: win.prizeLabel || 'İndirim',
+        time: getRelativeTime(win.playedAt),
+      };
+    });
+
+    res.json({ success: true, data: winners });
+  } catch (error) {
+    console.error('Social proof error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+function getRelativeTime(date: Date): string {
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+
+  if (minutes < 1) return 'Az önce';
+  if (minutes < 60) return `${minutes} dakika önce`;
+  if (hours < 24) return `${hours} saat önce`;
+  return '1 gün önce';
+}
 
 export default router;
 

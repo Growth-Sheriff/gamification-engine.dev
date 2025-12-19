@@ -201,6 +201,9 @@
                         </div>
                       <% } %>
                     </div>
+                    <button class="btn btn-outline-primary btn-sm mt-3 w-100" onclick="showTierModal()">
+                      <i class="ti ti-plus me-1"></i>Seviye Ekle
+                    </button>
                   </div>
                 </div>
               </div>
@@ -213,10 +216,83 @@
     </div>
   </div>
 
+  <!-- Tier Modal -->
+  <div class="modal fade" id="tierModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="ti ti-crown me-2"></i><span id="tierModalTitle">Yeni Seviye</span></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="tierId">
+          <div class="mb-3">
+            <label class="form-label">Seviye Adi</label>
+            <input type="text" class="form-control" id="tierName" placeholder="Gold">
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <label class="form-label">Min. Puan</label>
+              <input type="number" class="form-control" id="tierMinPoints" value="0">
+            </div>
+            <div class="col-6">
+              <label class="form-label">Puan Carpani</label>
+              <input type="number" class="form-control" id="tierMultiplier" value="1" step="0.1">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Renk</label>
+            <div class="d-flex gap-2">
+              <input type="color" class="form-control form-control-color" id="tierColor" value="#FFD700">
+              <input type="text" class="form-control" id="tierColorText" value="#FFD700" style="width: 100px;">
+            </div>
+          </div>
+          <div class="mb-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="tierFreeShipping">
+              <label class="form-check-label" for="tierFreeShipping">Ucretsiz Kargo</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="tierExclusiveAccess">
+              <label class="form-check-label" for="tierExclusiveAccess">Ozel Urunlere Erisim</label>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Dogum Gunu Bonus Puani</label>
+            <input type="number" class="form-control" id="tierBirthdayBonus" value="0">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-danger me-auto" id="tierDeleteBtn" style="display: none;" onclick="deleteTier()">
+            <i class="ti ti-trash"></i>
+          </button>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Iptal</button>
+          <button type="button" class="btn btn-primary" onclick="saveTier()">
+            <i class="ti ti-check me-1"></i>Kaydet
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/assets/js/menu.js"></script>
   <script src="/assets/js/app.js"></script>
   <script>
+    let tierModal;
+
+    document.addEventListener('DOMContentLoaded', function() {
+      tierModal = new bootstrap.Modal(document.getElementById('tierModal'));
+
+      // Color sync
+      document.getElementById('tierColor').addEventListener('input', function() {
+        document.getElementById('tierColorText').value = this.value;
+      });
+      document.getElementById('tierColorText').addEventListener('input', function() {
+        document.getElementById('tierColor').value = this.value;
+      });
+    });
+
     async function saveProgram() {
       const data = {
         isActive: document.getElementById('programActive').checked,
@@ -235,6 +311,61 @@
       try {
         await api.put('/api/loyalty/program', data);
         showToast('Program kaydedildi!', 'success');
+      } catch (error) {
+        showToast('Hata: ' + error.message, 'danger');
+      }
+    }
+
+    function showTierModal(tier = null) {
+      document.getElementById('tierModalTitle').textContent = tier ? 'Seviye Duzenle' : 'Yeni Seviye';
+      document.getElementById('tierId').value = tier?.id || '';
+      document.getElementById('tierName').value = tier?.name || '';
+      document.getElementById('tierMinPoints').value = tier?.minPoints || 0;
+      document.getElementById('tierMultiplier').value = tier?.pointMultiplier || 1;
+      document.getElementById('tierColor').value = tier?.color || '#FFD700';
+      document.getElementById('tierColorText').value = tier?.color || '#FFD700';
+      document.getElementById('tierFreeShipping').checked = tier?.freeShipping || false;
+      document.getElementById('tierExclusiveAccess').checked = tier?.exclusiveAccess || false;
+      document.getElementById('tierBirthdayBonus').value = tier?.birthdayBonus || 0;
+      document.getElementById('tierDeleteBtn').style.display = tier ? 'block' : 'none';
+      tierModal.show();
+    }
+
+    async function saveTier() {
+      const tierId = document.getElementById('tierId').value;
+      const data = {
+        name: document.getElementById('tierName').value,
+        minPoints: parseInt(document.getElementById('tierMinPoints').value),
+        pointMultiplier: parseFloat(document.getElementById('tierMultiplier').value),
+        color: document.getElementById('tierColor').value,
+        freeShipping: document.getElementById('tierFreeShipping').checked,
+        exclusiveAccess: document.getElementById('tierExclusiveAccess').checked,
+        birthdayBonus: parseInt(document.getElementById('tierBirthdayBonus').value),
+      };
+
+      try {
+        if (tierId) {
+          await api.put(`/api/loyalty/tiers/${tierId}`, data);
+        } else {
+          await api.post('/api/loyalty/tiers', data);
+        }
+        showToast('Seviye kaydedildi!', 'success');
+        tierModal.hide();
+        location.reload();
+      } catch (error) {
+        showToast('Hata: ' + error.message, 'danger');
+      }
+    }
+
+    async function deleteTier() {
+      const tierId = document.getElementById('tierId').value;
+      if (!confirm('Bu seviyeyi silmek istediginize emin misiniz?')) return;
+
+      try {
+        await api.delete(`/api/loyalty/tiers/${tierId}`);
+        showToast('Seviye silindi!', 'success');
+        tierModal.hide();
+        location.reload();
       } catch (error) {
         showToast('Hata: ' + error.message, 'danger');
       }

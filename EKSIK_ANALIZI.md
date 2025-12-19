@@ -227,26 +227,26 @@ Her modül için şu akışı simüle ediyorum:
 
 # ✅ EYLEM PLANI
 
-## Faz 1: Kritik Eksikler (Öncelik 1)
-1. [x] Shopify Discount API entegrasyonu ✅ (shopify.ts'de mevcut)
-2. [x] Loyalty frontend widget ✅ (loyalty-widget.liquid + loyalty-widget.js)
-3. [x] Loyalty puan kazanma webhook ✅ (webhooks.ts - orders/paid)
-4. [x] Referral kod oluşturma API ✅ (proxy.ts - /referral/code)
-5. [x] Targeting rule evaluation ✅ (proxy.ts - init endpoint)
+## Faz 1: Kritik Eksikler (Öncelik 1) ✅ TAMAMLANDI
+1. [x] Shopify Discount API entegrasyonu ✅ (shopify.ts)
+2. [x] Loyalty frontend widget ✅ (loyalty-widget.liquid + js)
+3. [x] Loyalty puan kazanma webhook ✅ (webhooks.ts)
+4. [x] Referral kod oluşturma API ✅ (proxy.ts)
+5. [x] Targeting rule evaluation ✅ (proxy.ts)
 
-## Faz 2: Core Features (Öncelik 2)
-6. [x] Scratch Card extension widget ✅ (scratch-card.liquid + scratch-card.js)
-7. [x] Popup extension widget ✅ (popup.liquid + popup.js)
-8. [ ] A/B test variant assignment (proxy init'e eklenecek)
-9. [ ] Loyalty puan harcama (checkout entegrasyonu)
-10. [x] Referral tracking (share widget) ✅ (referral-widget.liquid + referral-widget.js)
+## Faz 2: Core Features (Öncelik 2) ✅ TAMAMLANDI
+6. [x] Scratch Card extension widget ✅ (scratch-card.liquid + js)
+7. [x] Popup extension widget ✅ (popup.liquid + js)
+8. [x] A/B test variant assignment ✅ (proxy.ts - init endpoint)
+9. [x] Loyalty puan harcama ✅ (proxy.ts - /loyalty/redeem + widget)
+10. [x] Referral tracking ✅ (referral-widget.liquid + js)
 
-## Faz 3: Enhancement (Öncelik 3)
-11. [ ] Email entegrasyonu (Klaviyo)
-12. [ ] Progress bar widget
+## Faz 3: Enhancement (Öncelik 3) - DEVAM EDİYOR
+11. [ ] Email entegrasyonu (Klaviyo) - API hazır, client bekleniyor
+12. [x] Progress bar widget ✅ (loyalty-widget.js)
 13. [ ] Achievement system
-14. [ ] Social proof notifications
-15. [ ] Admin dashboard improvements
+14. [x] Social proof notifications ✅ (proxy.ts - /social-proof)
+15. [x] Admin dashboard improvements ✅ (tier modal, member history)
 
 ## Faz 4: Advanced (Öncelik 4)
 16. [ ] Leaderboard

@@ -119,19 +119,188 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/assets/js/menu.js"></script>
   <script src="/assets/js/app.js"></script>
+
+  <!-- Puan Ayarlama Modal -->
+  <div class="modal fade" id="adjustModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="ti ti-coin me-2"></i>Puan Ayarla</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="adjustMemberId">
+          <div class="mb-3">
+            <label class="form-label">Mevcut Puan</label>
+            <input type="text" class="form-control" id="currentPoints" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Ekle/Cikar</label>
+            <div class="input-group">
+              <button class="btn btn-outline-danger" type="button" onclick="document.getElementById('adjustAmount').value = parseInt(document.getElementById('adjustAmount').value || 0) - 100">-100</button>
+              <input type="number" class="form-control text-center" id="adjustAmount" value="0">
+              <button class="btn btn-outline-success" type="button" onclick="document.getElementById('adjustAmount').value = parseInt(document.getElementById('adjustAmount').value || 0) + 100">+100</button>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Aciklama</label>
+            <select class="form-select" id="adjustReason">
+              <option value="Manuel duzeltme">Manuel duzeltme</option>
+              <option value="Bonus puan">Bonus puan</option>
+              <option value="Kampanya odulu">Kampanya odulu</option>
+              <option value="Musteri sikayeti">Musteri sikayeti</option>
+              <option value="Diger">Diger</option>
+            </select>
+          </div>
+          <div id="adjustNote" class="alert alert-info d-none">
+            <i class="ti ti-info-circle me-1"></i>
+            <span id="adjustNoteText"></span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Iptal</button>
+          <button type="button" class="btn btn-primary" onclick="submitAdjust()">
+            <i class="ti ti-check me-1"></i>Onayla
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Islem Gecmisi Modal -->
+  <div class="modal fade" id="historyModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="ti ti-history me-2"></i>Islem Gecmisi</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="table-responsive">
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>Tarih</th>
+                  <th>Islem</th>
+                  <th>Puan</th>
+                  <th>Aciklama</th>
+                </tr>
+              </thead>
+              <tbody id="historyTableBody">
+                <tr><td colspan="4" class="text-center">Yukleniyor...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
-    function adjustPoints(memberId) {
-      const points = prompt('Eklenecek/cikarilacak puan miktari (negatif de olabilir):');
-      if (points !== null) {
-        const reason = prompt('Aciklama:');
-        api.post(`/api/loyalty/members/${memberId}/adjust`, {
-          points: parseInt(points),
-          reason: reason || 'Admin ayarlamasi'
-        }).then(() => {
-          showToast('Puan guncellendi!', 'success');
-          location.reload();
-        }).catch(err => showToast('Hata: ' + err.message, 'danger'));
+    let adjustModal, historyModal;
+
+    document.addEventListener('DOMContentLoaded', function() {
+      adjustModal = new bootstrap.Modal(document.getElementById('adjustModal'));
+      historyModal = new bootstrap.Modal(document.getElementById('historyModal'));
+    });
+
+    function adjustPoints(memberId, currentPoints) {
+      document.getElementById('adjustMemberId').value = memberId;
+      document.getElementById('currentPoints').value = currentPoints.toLocaleString() + ' puan';
+      document.getElementById('adjustAmount').value = 0;
+      adjustModal.show();
+    }
+
+    document.getElementById('adjustAmount').addEventListener('input', function() {
+      const amount = parseInt(this.value) || 0;
+      const note = document.getElementById('adjustNote');
+      const noteText = document.getElementById('adjustNoteText');
+
+      if (amount !== 0) {
+        note.classList.remove('d-none');
+        if (amount > 0) {
+          note.className = 'alert alert-success';
+          noteText.textContent = `+${amount} puan eklenecek`;
+        } else {
+          note.className = 'alert alert-warning';
+          noteText.textContent = `${amount} puan cikarilacak`;
+        }
+      } else {
+        note.classList.add('d-none');
       }
+    });
+
+    async function submitAdjust() {
+      const memberId = document.getElementById('adjustMemberId').value;
+      const amount = parseInt(document.getElementById('adjustAmount').value);
+      const reason = document.getElementById('adjustReason').value;
+
+      if (amount === 0) {
+        showToast('Lutfen bir miktar girin', 'warning');
+        return;
+      }
+
+      try {
+        await api.post(`/api/loyalty/members/${memberId}/adjust`, {
+          points: amount,
+          reason: reason
+        });
+        showToast('Puan guncellendi!', 'success');
+        adjustModal.hide();
+        location.reload();
+      } catch (error) {
+        showToast('Hata: ' + error.message, 'danger');
+      }
+    }
+
+    async function showHistory(memberId) {
+      document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="4" class="text-center">Yukleniyor...</td></tr>';
+      historyModal.show();
+
+      try {
+        const response = await api.get(`/api/loyalty/members/${memberId}/history`);
+        const transactions = response.data || [];
+
+        if (transactions.length === 0) {
+          document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="4" class="text-center text-muted">Islem gecmisi yok</td></tr>';
+          return;
+        }
+
+        document.getElementById('historyTableBody').innerHTML = transactions.map(t => `
+          <tr>
+            <td>${new Date(t.createdAt).toLocaleString('tr-TR')}</td>
+            <td><span class="badge ${getTypeBadge(t.type)}">${getTypeLabel(t.type)}</span></td>
+            <td class="${t.points >= 0 ? 'text-success' : 'text-danger'}">${t.points >= 0 ? '+' : ''}${t.points}</td>
+            <td>${t.description || '-'}</td>
+          </tr>
+        `).join('');
+      } catch (error) {
+        document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="4" class="text-center text-danger">Hata olustu</td></tr>';
+      }
+    }
+
+    function getTypeBadge(type) {
+      const badges = {
+        'PURCHASE': 'bg-success',
+        'REDEEM': 'bg-warning',
+        'ADMIN_ADJUST': 'bg-info',
+        'REFERRAL': 'bg-primary',
+        'SIGNUP': 'bg-secondary',
+        'BIRTHDAY': 'bg-danger'
+      };
+      return badges[type] || 'bg-secondary';
+    }
+
+    function getTypeLabel(type) {
+      const labels = {
+        'PURCHASE': 'Satin Alma',
+        'REDEEM': 'Harcama',
+        'ADMIN_ADJUST': 'Admin',
+        'REFERRAL': 'Davet',
+        'SIGNUP': 'Kayit',
+        'BIRTHDAY': 'Dogum Gunu'
+      };
+      return labels[type] || type;
     }
   </script>
 </body>

@@ -421,11 +421,362 @@
   }
 
   function showRedeemModal() {
-    alert('Puan kullanma özelliği yakında aktif olacak!');
+    if (state.points < 100) {
+      showNotification('Minimum 100 puan gerekli', 'warning');
+      return;
+    }
+
+    const modal = document.createElement('div');
+    modal.id = 'loyalty-redeem-modal';
+    modal.innerHTML = `
+      <style>
+        #loyalty-redeem-modal {
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.8);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10000;
+          animation: loyaltyFadeIn 0.3s ease;
+        }
+        @keyframes loyaltyFadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .redeem-container {
+          background: white;
+          border-radius: 16px;
+          padding: 25px;
+          max-width: 350px;
+          width: 90%;
+          text-align: center;
+        }
+        .redeem-title {
+          font-size: 1.3rem;
+          font-weight: 700;
+          margin-bottom: 20px;
+        }
+        .redeem-points-input {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 15px;
+          margin-bottom: 15px;
+        }
+        .redeem-points-input button {
+          width: 40px;
+          height: 40px;
+          border: none;
+          border-radius: 50%;
+          background: ${config.primaryColor};
+          color: white;
+          font-size: 1.3rem;
+          cursor: pointer;
+        }
+        .redeem-points-input input {
+          width: 100px;
+          text-align: center;
+          font-size: 1.5rem;
+          font-weight: bold;
+          border: 2px solid #eee;
+          border-radius: 10px;
+          padding: 10px;
+        }
+        .redeem-value {
+          font-size: 1.2rem;
+          color: ${config.primaryColor};
+          margin-bottom: 20px;
+        }
+        .redeem-btn {
+          width: 100%;
+          padding: 14px;
+          background: ${config.primaryColor};
+          color: white;
+          border: none;
+          border-radius: 10px;
+          font-weight: 600;
+          cursor: pointer;
+          margin-bottom: 10px;
+        }
+        .redeem-cancel {
+          background: none;
+          border: none;
+          color: #999;
+          cursor: pointer;
+        }
+      </style>
+      <div class="redeem-container">
+        <div class="redeem-title">🎁 Puan Kullan</div>
+        <p style="color: #666; margin-bottom: 15px;">Mevcut: <strong>${state.points.toLocaleString()}</strong> puan</p>
+        
+        <div class="redeem-points-input">
+          <button onclick="adjustRedeemPoints(-100)">-</button>
+          <input type="number" id="redeem-amount" value="100" min="100" max="${state.points}" step="100">
+          <button onclick="adjustRedeemPoints(100)">+</button>
+        </div>
+        
+        <div class="redeem-value" id="redeem-value">= 10 TL indirim</div>
+        
+        <button class="redeem-btn" onclick="executeRedeem()">İndirim Kodu Al</button>
+        <button class="redeem-cancel" onclick="closeRedeemModal()">Vazgeç</button>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    document.getElementById('redeem-amount').addEventListener('input', updateRedeemValue);
   }
 
-  function showHistoryModal() {
-    alert('İşlem geçmişi yakında aktif olacak!');
+  window.adjustRedeemPoints = function(amount) {
+    const input = document.getElementById('redeem-amount');
+    let value = parseInt(input.value) + amount;
+    value = Math.max(100, Math.min(state.points, value));
+    input.value = value;
+    updateRedeemValue();
+  };
+
+  function updateRedeemValue() {
+    const input = document.getElementById('redeem-amount');
+    const valueEl = document.getElementById('redeem-value');
+    const points = parseInt(input.value) || 100;
+    const discount = (points / 100) * 10; // 100 puan = 10 TL
+    valueEl.textContent = `= ${discount.toFixed(0)} TL indirim`;
+  }
+
+  window.closeRedeemModal = function() {
+    const modal = document.getElementById('loyalty-redeem-modal');
+    if (modal) modal.remove();
+  };
+
+  window.executeRedeem = async function() {
+    const points = parseInt(document.getElementById('redeem-amount').value);
+    
+    try {
+      const response = await fetch(`${API_BASE}/loyalty/redeem`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          shop: config.shopDomain,
+          customerId: config.customerId,
+          email: config.customerEmail,
+          pointsToRedeem: points
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        closeRedeemModal();
+        showDiscountCode(data.data.code, data.data.value);
+        state.points = data.data.remainingPoints;
+        updateUI();
+      } else {
+        showNotification(data.error || 'Bir hata oluştu', 'error');
+      }
+    } catch (error) {
+      showNotification('Bağlantı hatası', 'error');
+    }
+  };
+
+  function showDiscountCode(code, value) {
+    const modal = document.createElement('div');
+    modal.id = 'loyalty-code-modal';
+    modal.innerHTML = `
+      <style>
+        #loyalty-code-modal {
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.8);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10000;
+        }
+        .code-container {
+          background: white;
+          border-radius: 16px;
+          padding: 30px;
+          max-width: 350px;
+          width: 90%;
+          text-align: center;
+        }
+        .code-success {
+          font-size: 3rem;
+          margin-bottom: 10px;
+        }
+        .code-value {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: ${config.primaryColor};
+          margin-bottom: 15px;
+        }
+        .code-box {
+          background: #f5f5f5;
+          padding: 15px;
+          border-radius: 10px;
+          font-family: monospace;
+          font-size: 1.3rem;
+          font-weight: bold;
+          letter-spacing: 2px;
+          margin-bottom: 15px;
+          cursor: pointer;
+        }
+        .code-copy-btn {
+          width: 100%;
+          padding: 14px;
+          background: ${config.primaryColor};
+          color: white;
+          border: none;
+          border-radius: 10px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+      </style>
+      <div class="code-container">
+        <div class="code-success">🎉</div>
+        <div class="code-value">${value.toFixed(0)} TL İndirim</div>
+        <div class="code-box" onclick="navigator.clipboard.writeText('${code}')">${code}</div>
+        <button class="code-copy-btn" onclick="navigator.clipboard.writeText('${code}'); this.textContent='✓ Kopyalandı!'">📋 Kodu Kopyala</button>
+        <button style="margin-top: 10px; background: none; border: none; color: #999; cursor: pointer;" onclick="this.closest('#loyalty-code-modal').remove()">Kapat</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  async function showHistoryModal() {
+    const modal = document.createElement('div');
+    modal.id = 'loyalty-history-modal';
+    modal.innerHTML = `
+      <style>
+        #loyalty-history-modal {
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.8);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10000;
+        }
+        .history-container {
+          background: white;
+          border-radius: 16px;
+          padding: 25px;
+          max-width: 400px;
+          width: 90%;
+          max-height: 80vh;
+          overflow-y: auto;
+        }
+        .history-title {
+          font-size: 1.2rem;
+          font-weight: 700;
+          margin-bottom: 20px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .history-close {
+          background: none;
+          border: none;
+          font-size: 1.5rem;
+          cursor: pointer;
+          color: #999;
+        }
+        .history-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 12px 0;
+          border-bottom: 1px solid #eee;
+        }
+        .history-item-info {
+          flex: 1;
+        }
+        .history-item-desc {
+          font-size: 0.9rem;
+          color: #333;
+        }
+        .history-item-date {
+          font-size: 0.75rem;
+          color: #999;
+        }
+        .history-item-points {
+          font-weight: 700;
+        }
+        .history-item-points.positive { color: #28c76f; }
+        .history-item-points.negative { color: #ea5455; }
+      </style>
+      <div class="history-container">
+        <div class="history-title">
+          <span>📋 İşlem Geçmişi</span>
+          <button class="history-close" onclick="this.closest('#loyalty-history-modal').remove()">×</button>
+        </div>
+        <div id="history-list">Yükleniyor...</div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    try {
+      const response = await fetch(`${API_BASE}/loyalty/history`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          shop: config.shopDomain,
+          customerId: config.customerId,
+          email: config.customerEmail
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success && data.data.length > 0) {
+        document.getElementById('history-list').innerHTML = data.data.map(t => `
+          <div class="history-item">
+            <div class="history-item-info">
+              <div class="history-item-desc">${t.description || getTypeLabel(t.type)}</div>
+              <div class="history-item-date">${new Date(t.createdAt).toLocaleDateString('tr-TR')}</div>
+            </div>
+            <div class="history-item-points ${t.points >= 0 ? 'positive' : 'negative'}">
+              ${t.points >= 0 ? '+' : ''}${t.points}
+            </div>
+          </div>
+        `).join('');
+      } else {
+        document.getElementById('history-list').innerHTML = '<p style="text-align: center; color: #999;">Henüz işlem yok</p>';
+      }
+    } catch (error) {
+      document.getElementById('history-list').innerHTML = '<p style="text-align: center; color: #ea5455;">Yüklenemedi</p>';
+    }
+  }
+
+  function getTypeLabel(type) {
+    const labels = {
+      'PURCHASE': '🛍️ Satın alma',
+      'REDEEM': '🎁 Puan kullanımı',
+      'ADMIN_ADJUST': '⚙️ Admin ayarlaması',
+      'REFERRAL': '👥 Arkadaş daveti',
+      'SIGNUP': '🎉 Kayıt bonusu',
+      'BIRTHDAY': '🎂 Doğum günü'
+    };
+    return labels[type] || type;
+  }
+
+  function showNotification(message, type = 'info') {
+    const notif = document.createElement('div');
+    notif.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 25px;
+      background: ${type === 'error' ? '#ea5455' : type === 'warning' ? '#ff9f43' : '#28c76f'};
+      color: white;
+      border-radius: 10px;
+      z-index: 10001;
+      animation: loyaltyFadeIn 0.3s ease;
+    `;
+    notif.textContent = message;
+    document.body.appendChild(notif);
+    setTimeout(() => notif.remove(), 3000);
   }
 
   // Initialize

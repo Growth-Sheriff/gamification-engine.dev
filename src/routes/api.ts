@@ -782,6 +782,36 @@ router.post('/loyalty/members/:id/adjust', async (req: Request, res: Response) =
 });
 
 /**
+ * Get member transaction history
+ * GET /api/loyalty/members/:id/history
+ */
+router.get('/loyalty/members/:id/history', async (req: Request, res: Response) => {
+  try {
+    const memberId = req.params.id;
+
+    const loyaltyPoints = await prisma.loyaltyPoints.findUnique({
+      where: { id: memberId },
+      include: {
+        transactions: {
+          orderBy: { createdAt: 'desc' },
+          take: 50,
+        },
+      },
+    });
+
+    if (!loyaltyPoints) {
+      res.status(404).json({ success: false, error: 'Member not found' });
+      return;
+    }
+
+    res.json({ success: true, data: loyaltyPoints.transactions });
+  } catch (error) {
+    console.error('Get member history error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get history' });
+  }
+});
+
+/**
  * Create loyalty tier
  * POST /api/loyalty/tiers
  */
