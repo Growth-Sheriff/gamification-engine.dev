@@ -228,18 +228,18 @@ Her modül için şu akışı simüle ediyorum:
 # ✅ EYLEM PLANI
 
 ## Faz 1: Kritik Eksikler (Öncelik 1)
-1. [ ] Shopify Discount API entegrasyonu
-2. [ ] Loyalty frontend widget
-3. [ ] Loyalty puan kazanma webhook
-4. [ ] Referral kod oluşturma API
-5. [ ] Targeting rule evaluation
+1. [x] Shopify Discount API entegrasyonu ✅ (shopify.ts'de mevcut)
+2. [x] Loyalty frontend widget ✅ (loyalty-widget.liquid + loyalty-widget.js)
+3. [x] Loyalty puan kazanma webhook ✅ (webhooks.ts - orders/paid)
+4. [x] Referral kod oluşturma API ✅ (proxy.ts - /referral/code)
+5. [x] Targeting rule evaluation ✅ (proxy.ts - init endpoint)
 
 ## Faz 2: Core Features (Öncelik 2)
-6. [ ] Scratch Card extension widget
-7. [ ] Popup extension widget
-8. [ ] A/B test variant assignment
-9. [ ] Loyalty puan harcama
-10. [ ] Referral tracking
+6. [x] Scratch Card extension widget ✅ (scratch-card.liquid + scratch-card.js)
+7. [x] Popup extension widget ✅ (popup.liquid + popup.js)
+8. [ ] A/B test variant assignment (proxy init'e eklenecek)
+9. [ ] Loyalty puan harcama (checkout entegrasyonu)
+10. [x] Referral tracking (share widget) ✅ (referral-widget.liquid + referral-widget.js)
 
 ## Faz 3: Enhancement (Öncelik 3)
 11. [ ] Email entegrasyonu (Klaviyo)

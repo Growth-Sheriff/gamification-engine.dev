@@ -1,0 +1,86 @@
+{% comment %}
+  Gamification Engine - Scratch Card Block
+  Interactive scratch card for discounts
+{% endcomment %}
+
+{% schema %}
+{
+  "name": "Scratch Card",
+  "target": "body",
+  "javascript": "scratch-card.js",
+  "stylesheet": "scratch-card.css",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enabled",
+      "label": "Enable Scratch Card",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "trigger_delay",
+      "label": "Trigger Delay (seconds)",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "default": 5
+    },
+    {
+      "type": "select",
+      "id": "trigger_type",
+      "label": "Trigger Type",
+      "options": [
+        { "value": "time", "label": "Time on page" },
+        { "value": "scroll", "label": "Scroll depth (50%)" },
+        { "value": "exit", "label": "Exit intent" }
+      ],
+      "default": "time"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "🎫 Kazı Kazan!"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Subtitle",
+      "default": "Kartı kazı ve sürpriz indirimini keşfet!"
+    },
+    {
+      "type": "color",
+      "id": "scratch_color",
+      "label": "Scratch Layer Color",
+      "default": "#c0c0c0"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent Color",
+      "default": "#28c76f"
+    }
+  ]
+}
+{% endschema %}
+
+{% if block.settings.enabled %}
+  <script>
+    window.GamificationConfig = window.GamificationConfig || {};
+    window.GamificationConfig.scratchCard = {
+      enabled: true,
+      triggerDelay: {{ block.settings.trigger_delay | default: 5 }} * 1000,
+      triggerType: '{{ block.settings.trigger_type | default: "time" }}',
+      title: '{{ block.settings.title | default: "🎫 Kazı Kazan!" | escape }}',
+      subtitle: '{{ block.settings.subtitle | default: "Kartı kazı ve sürpriz indirimini keşfet!" | escape }}',
+      scratchColor: '{{ block.settings.scratch_color | default: "#c0c0c0" }}',
+      accentColor: '{{ block.settings.accent_color | default: "#28c76f" }}',
+      shopDomain: '{{ shop.permanent_domain }}',
+      customerId: '{{ customer.id | default: "" }}',
+      customerEmail: '{{ customer.email | default: "" }}',
+      pageType: '{{ request.page_type }}',
+      pagePath: '{{ request.path }}'
+    };
+  </script>
+{% endif %}
+

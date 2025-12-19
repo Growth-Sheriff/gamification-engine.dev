@@ -1,0 +1,72 @@
+{% comment %}
+  Gamification Engine - Referral Widget Block
+  Share referral code and earn rewards
+{% endcomment %}
+
+{% schema %}
+{
+  "name": "Referral Widget",
+  "target": "section",
+  "javascript": "referral-widget.js",
+  "stylesheet": "referral-widget.css",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enabled",
+      "label": "Enable Referral Widget",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "position",
+      "label": "Widget Position",
+      "options": [
+        { "value": "bottom-left", "label": "Bottom Left" },
+        { "value": "inline", "label": "Inline (in page)" }
+      ],
+      "default": "bottom-left"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Widget Title",
+      "default": "👥 Arkadaşını Davet Et"
+    },
+    {
+      "type": "text",
+      "id": "reward_text",
+      "label": "Reward Text",
+      "default": "Sen ve arkadaşın 10 TL indirim kazanın!"
+    },
+    {
+      "type": "color",
+      "id": "primary_color",
+      "label": "Primary Color",
+      "default": "#28c76f"
+    }
+  ]
+}
+{% endschema %}
+
+{% if block.settings.enabled and customer %}
+  <div id="referral-widget-container"
+       data-position="{{ block.settings.position }}"
+       style="display: none;">
+  </div>
+
+  <script>
+    window.GamificationConfig = window.GamificationConfig || {};
+    window.GamificationConfig.referral = {
+      enabled: true,
+      position: '{{ block.settings.position | default: "bottom-left" }}',
+      title: '{{ block.settings.title | default: "👥 Arkadaşını Davet Et" | escape }}',
+      rewardText: '{{ block.settings.reward_text | default: "Sen ve arkadaşın 10 TL indirim kazanın!" | escape }}',
+      primaryColor: '{{ block.settings.primary_color | default: "#28c76f" }}',
+      shopDomain: '{{ shop.permanent_domain }}',
+      customerId: '{{ customer.id }}',
+      customerEmail: '{{ customer.email }}',
+      customerName: '{{ customer.first_name | escape }}'
+    };
+  </script>
+{% endif %}
+

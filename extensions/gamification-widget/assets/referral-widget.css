@@ -1,0 +1,6 @@
+/* Referral Widget Styles - Minimal CSS for extension */
+#referral-widget-container {
+  position: fixed;
+  z-index: 9997;
+}
+
