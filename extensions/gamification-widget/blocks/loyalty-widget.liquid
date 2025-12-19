@@ -1,0 +1,76 @@
+{% comment %}
+  Gamification Engine - Loyalty Widget Block
+  Customer loyalty points display and redemption
+{% endcomment %}
+
+{% schema %}
+{
+  "name": "Loyalty Widget",
+  "target": "section",
+  "javascript": "loyalty-widget.js",
+  "stylesheet": "loyalty-widget.css",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enabled",
+      "label": "Enable Loyalty Widget",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "position",
+      "label": "Widget Position",
+      "options": [
+        { "value": "bottom-right", "label": "Bottom Right" },
+        { "value": "bottom-left", "label": "Bottom Left" },
+        { "value": "inline", "label": "Inline (in page)" }
+      ],
+      "default": "bottom-right"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Widget Title",
+      "default": "⭐ Puan Bakiyeniz"
+    },
+    {
+      "type": "color",
+      "id": "primary_color",
+      "label": "Primary Color",
+      "default": "#7367f0"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent Color",
+      "default": "#ffd700"
+    }
+  ]
+}
+{% endschema %}
+
+{% if block.settings.enabled %}
+  <div id="loyalty-widget-container"
+       data-position="{{ block.settings.position }}"
+       data-primary-color="{{ block.settings.primary_color }}"
+       data-accent-color="{{ block.settings.accent_color }}"
+       style="display: none;">
+  </div>
+
+  <script>
+    window.GamificationConfig = window.GamificationConfig || {};
+    window.GamificationConfig.loyalty = {
+      enabled: true,
+      position: '{{ block.settings.position | default: "bottom-right" }}',
+      title: '{{ block.settings.title | default: "⭐ Puan Bakiyeniz" | escape }}',
+      primaryColor: '{{ block.settings.primary_color | default: "#7367f0" }}',
+      accentColor: '{{ block.settings.accent_color | default: "#ffd700" }}',
+      shopDomain: '{{ shop.permanent_domain }}',
+      customerId: '{{ customer.id | default: "" }}',
+      customerEmail: '{{ customer.email | default: "" }}',
+      customerName: '{{ customer.first_name | default: "" | escape }}',
+      isLoggedIn: {% if customer %}true{% else %}false{% endif %}
+    };
+  </script>
+{% endif %}
+

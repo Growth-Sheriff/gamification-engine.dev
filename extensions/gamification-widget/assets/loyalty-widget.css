@@ -1,0 +1,6 @@
+/* Loyalty Widget Styles - Minimal CSS for extension */
+#loyalty-widget-container {
+  position: fixed;
+  z-index: 9998;
+}
+

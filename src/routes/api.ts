@@ -781,6 +781,85 @@ router.post('/loyalty/members/:id/adjust', async (req: Request, res: Response) =
   }
 });
 
+/**
+ * Create loyalty tier
+ * POST /api/loyalty/tiers
+ */
+router.post('/loyalty/tiers', async (req: Request, res: Response) => {
+  try {
+    const shopId = req.shop!.id;
+    const { name, minPoints, color, pointMultiplier, freeShipping, exclusiveAccess, birthdayBonus } = req.body;
+
+    const program = await prisma.loyaltyProgram.findUnique({
+      where: { shopId },
+    });
+
+    if (!program) {
+      res.status(404).json({ success: false, error: 'Loyalty program not found' });
+      return;
+    }
+
+    const tierCount = await prisma.loyaltyTier.count({ where: { programId: program.id } });
+
+    const tier = await prisma.loyaltyTier.create({
+      data: {
+        programId: program.id,
+        name,
+        minPoints: minPoints || 0,
+        color: color || '#7367f0',
+        pointMultiplier: pointMultiplier || 1,
+        freeShipping: freeShipping || false,
+        exclusiveAccess: exclusiveAccess || false,
+        birthdayBonus: birthdayBonus || 0,
+        order: tierCount,
+      },
+    });
+
+    res.json({ success: true, data: tier });
+  } catch (error) {
+    console.error('Create tier error:', error);
+    res.status(500).json({ success: false, error: 'Failed to create tier' });
+  }
+});
+
+/**
+ * Update loyalty tier
+ * PUT /api/loyalty/tiers/:id
+ */
+router.put('/loyalty/tiers/:id', async (req: Request, res: Response) => {
+  try {
+    const tierId = req.params.id;
+    const data = req.body;
+
+    const tier = await prisma.loyaltyTier.update({
+      where: { id: tierId },
+      data,
+    });
+
+    res.json({ success: true, data: tier });
+  } catch (error) {
+    console.error('Update tier error:', error);
+    res.status(500).json({ success: false, error: 'Failed to update tier' });
+  }
+});
+
+/**
+ * Delete loyalty tier
+ * DELETE /api/loyalty/tiers/:id
+ */
+router.delete('/loyalty/tiers/:id', async (req: Request, res: Response) => {
+  try {
+    const tierId = req.params.id;
+
+    await prisma.loyaltyTier.delete({ where: { id: tierId } });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Delete tier error:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete tier' });
+  }
+});
+
 // ═══════════════════════════════════════════════════════════════════════════
 // A/B TESTING API
 // ═══════════════════════════════════════════════════════════════════════════

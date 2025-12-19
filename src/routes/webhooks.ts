@@ -144,6 +144,159 @@ router.post('/orders/paid', verifyWebhookMiddleware, async (req: Request, res: R
       }
     }
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // LOYALTY POINTS - Satın almada puan kazan
+    // ═══════════════════════════════════════════════════════════════════════
+
+    if (order.customer) {
+      // Check if loyalty program is active
+      const loyaltyProgram = await prisma.loyaltyProgram.findUnique({
+        where: { shopId: shop.id },
+        include: { tiers: { orderBy: { minPoints: 'asc' } } },
+      });
+
+      if (loyaltyProgram?.isActive) {
+        // Find or create visitor
+        let visitor = await prisma.visitor.findFirst({
+          where: {
+            shopId: shop.id,
+            OR: [
+              { customerId: `gid://shopify/Customer/${order.customer.id}` },
+              { email: order.customer.email },
+            ],
+          },
+        });
+
+        if (!visitor) {
+          visitor = await prisma.visitor.create({
+            data: {
+              shopId: shop.id,
+              customerId: `gid://shopify/Customer/${order.customer.id}`,
+              email: order.customer.email,
+              fingerprint: `customer_${order.customer.id}`,
+            },
+          });
+        }
+
+        // Get or create loyalty points
+        let loyaltyPoints = await prisma.loyaltyPoints.findUnique({
+          where: { visitorId_shopId: { visitorId: visitor.id, shopId: shop.id } },
+        });
+
+        // Calculate points based on order total
+        const orderTotal = parseFloat(order.total_price);
+
+        // Get current tier for multiplier
+        let multiplier = 1;
+        if (loyaltyPoints) {
+          for (let i = loyaltyProgram.tiers.length - 1; i >= 0; i--) {
+            if (loyaltyPoints.points >= loyaltyProgram.tiers[i].minPoints) {
+              multiplier = loyaltyProgram.tiers[i].pointMultiplier;
+              break;
+            }
+          }
+        }
+
+        const pointsEarned = Math.floor(orderTotal * loyaltyProgram.pointsPerPurchase * multiplier);
+
+        if (!loyaltyPoints) {
+          loyaltyPoints = await prisma.loyaltyPoints.create({
+            data: {
+              visitorId: visitor.id,
+              shopId: shop.id,
+              points: pointsEarned,
+              lifetimePoints: pointsEarned,
+              lastEarnedAt: new Date(),
+            },
+          });
+        } else {
+          await prisma.loyaltyPoints.update({
+            where: { id: loyaltyPoints.id },
+            data: {
+              points: { increment: pointsEarned },
+              lifetimePoints: { increment: pointsEarned },
+              lastEarnedAt: new Date(),
+            },
+          });
+        }
+
+        // Create transaction record
+        await prisma.pointTransaction.create({
+          data: {
+            loyaltyId: loyaltyPoints.id,
+            type: 'PURCHASE',
+            points: pointsEarned,
+            description: `Sipariş #${order.id} - ${orderTotal.toFixed(2)} TL`,
+            orderId: order.admin_graphql_api_id,
+          },
+        });
+
+        console.log(`Loyalty: +${pointsEarned} puan kazanıldı (Order #${order.id})`);
+
+        // ═══════════════════════════════════════════════════════════════════
+        // REFERRAL - Davet tamamlama kontrolü
+        // ═══════════════════════════════════════════════════════════════════
+
+        const referralProgram = await prisma.referralProgram.findUnique({
+          where: { shopId: shop.id },
+        });
+
+        if (referralProgram?.isActive) {
+          // Check if this is the first order from a referred customer
+          const referral = await prisma.referral.findFirst({
+            where: {
+              programId: referralProgram.id,
+              refereeVisitorId: visitor.id,
+              status: 'PENDING',
+            },
+          });
+
+          if (referral && (!referralProgram.minPurchaseAmount || orderTotal >= referralProgram.minPurchaseAmount)) {
+            // Complete the referral
+            await prisma.referral.update({
+              where: { id: referral.id },
+              data: {
+                status: 'COMPLETED',
+                completedAt: new Date(),
+                refereeOrderId: order.admin_graphql_api_id,
+                refereeOrderAmount: orderTotal,
+                referrerRewarded: true,
+              },
+            });
+
+            // Give referrer reward
+            if (referralProgram.referrerReward === 'POINTS') {
+              const referrerLoyalty = await prisma.loyaltyPoints.findFirst({
+                where: { visitorId: referral.referrerVisitorId, shopId: shop.id },
+              });
+
+              if (referrerLoyalty) {
+                await prisma.loyaltyPoints.update({
+                  where: { id: referrerLoyalty.id },
+                  data: {
+                    points: { increment: referralProgram.referrerValue },
+                    lifetimePoints: { increment: referralProgram.referrerValue },
+                  },
+                });
+
+                await prisma.pointTransaction.create({
+                  data: {
+                    loyaltyId: referrerLoyalty.id,
+                    type: 'REFERRAL',
+                    points: referralProgram.referrerValue,
+                    description: 'Arkadaş davet ödülü',
+                    referralId: referral.id,
+                  },
+                });
+              }
+            }
+
+            console.log(`Referral completed: ${referral.code}`);
+          }
+        }
+      }
+    }
+
     res.status(200).send('OK');
   } catch (error) {
     console.error('Order paid webhook error:', error);

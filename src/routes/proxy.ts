@@ -193,6 +193,133 @@ router.post('/init', async (req: Request, res: Response) => {
       }
     }
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // TARGETING RULE EVALUATION
+    // ═══════════════════════════════════════════════════════════════════════
+
+    let targetedGameId: string | null = null;
+
+    // Get all active targeting rules for this shop
+    const targetingRules = await prisma.targetingRule.findMany({
+      where: {
+        shopId: shop.id,
+        isActive: true,
+      },
+      orderBy: { priority: 'desc' },
+    });
+
+    // Evaluate each rule
+    for (const rule of targetingRules) {
+      let matches = true;
+
+      // Page type check
+      if (rule.pageType && rule.pageType.length > 0) {
+        const pageType = body.page?.includes('/products/') ? 'product' :
+                        body.page?.includes('/collections/') ? 'collection' :
+                        body.page === '/' ? 'index' :
+                        body.page?.includes('/cart') ? 'cart' : 'page';
+        if (!rule.pageType.includes(pageType)) {
+          matches = false;
+        }
+      }
+
+      // Device check
+      if (matches && rule.devices && rule.devices.length > 0) {
+        if (!rule.devices.includes(visitor.device || 'desktop')) {
+          matches = false;
+        }
+      }
+
+      // Visitor type check
+      if (matches && rule.visitorType !== 'ALL') {
+        const isNew = isNewVisitor;
+        const isCustomer = !!visitor.customerId;
+        const isLoggedIn = !!visitor.email;
+
+        switch (rule.visitorType) {
+          case 'NEW':
+            if (!isNew) matches = false;
+            break;
+          case 'RETURNING':
+            if (isNew) matches = false;
+            break;
+          case 'CUSTOMERS':
+            if (!isCustomer) matches = false;
+            break;
+          case 'NON_CUSTOMERS':
+            if (isCustomer) matches = false;
+            break;
+          case 'LOGGED_IN':
+            if (!isLoggedIn) matches = false;
+            break;
+          case 'NOT_LOGGED_IN':
+            if (isLoggedIn) matches = false;
+            break;
+        }
+      }
+
+      // Traffic source check
+      if (matches && rule.trafficSource && rule.trafficSource.length > 0) {
+        const source = body.utmSource ? 'paid' :
+                      body.referrer?.includes('google') ? 'organic' :
+                      body.referrer?.includes('facebook') || body.referrer?.includes('instagram') ? 'social' :
+                      !body.referrer ? 'direct' : 'referral';
+        if (!rule.trafficSource.includes(source)) {
+          matches = false;
+        }
+      }
+
+      // UTM checks
+      if (matches && rule.utmSource && rule.utmSource.length > 0 && body.utmSource) {
+        if (!rule.utmSource.includes(body.utmSource)) {
+          matches = false;
+        }
+      }
+
+      // Schedule check
+      if (matches && rule.scheduleEnabled) {
+        const now = new Date();
+        const currentDay = now.getDay();
+        const currentHour = now.getHours();
+
+        if (rule.scheduleDays && rule.scheduleDays.length > 0) {
+          if (!rule.scheduleDays.includes(currentDay)) {
+            matches = false;
+          }
+        }
+
+        if (matches && rule.scheduleStartHour !== null && rule.scheduleEndHour !== null) {
+          if (currentHour < rule.scheduleStartHour || currentHour > rule.scheduleEndHour) {
+            matches = false;
+          }
+        }
+      }
+
+      // If rule matches, use this game
+      if (matches) {
+        targetedGameId = rule.gameId;
+        break;
+      }
+    }
+
+    // If targeting found a game, override activeGame
+    if (targetedGameId && (!activeGame || activeGame.id !== targetedGameId)) {
+      const targetedGame = await prisma.game.findFirst({
+        where: {
+          id: targetedGameId,
+          shopId: shop.id,
+          isActive: true,
+        },
+        include: {
+          segments: { orderBy: { order: 'asc' } },
+        },
+      });
+
+      if (targetedGame) {
+        activeGame = targetedGame;
+      }
+    }
+
     res.json({
       success: true,
       data: {
@@ -875,6 +1002,327 @@ router.get('/game', async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Proxy game error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LOYALTY - Müşteri sadakat puanları
+// ═══════════════════════════════════════════════════════════════════════════
+
+interface LoyaltyBalanceRequest {
+  shop: string;
+  customerId?: string;
+  email?: string;
+}
+
+/**
+ * Get loyalty balance
+ * POST /api/proxy/loyalty/balance
+ */
+router.post('/loyalty/balance', async (req: Request, res: Response) => {
+  try {
+    const { shop: shopDomain, customerId, email } = req.body as LoyaltyBalanceRequest;
+
+    if (!shopDomain) {
+      res.status(400).json({ success: false, error: 'Missing shop domain' });
+      return;
+    }
+
+    const shop = await prisma.shop.findUnique({
+      where: { domain: shopDomain },
+      include: { loyaltyProgram: { include: { tiers: { orderBy: { minPoints: 'asc' } } } } },
+    });
+
+    if (!shop || !shop.isActive || !shop.loyaltyProgram?.isActive) {
+      res.status(404).json({ success: false, error: 'Loyalty program not found' });
+      return;
+    }
+
+    // Find visitor by customerId or email
+    let visitor = null;
+    if (customerId) {
+      visitor = await prisma.visitor.findFirst({
+        where: { shopId: shop.id, customerId },
+      });
+    }
+    if (!visitor && email) {
+      visitor = await prisma.visitor.findFirst({
+        where: { shopId: shop.id, email },
+      });
+    }
+
+    if (!visitor) {
+      // Return zero balance for new customers
+      res.json({
+        success: true,
+        data: {
+          points: 0,
+          tier: shop.loyaltyProgram.tiers[0]?.name || 'Bronze',
+          tierColor: shop.loyaltyProgram.tiers[0]?.color || '#CD7F32',
+          nextTier: shop.loyaltyProgram.tiers[1]?.name || null,
+          pointsToNext: shop.loyaltyProgram.tiers[1]?.minPoints || 0,
+        },
+      });
+      return;
+    }
+
+    // Get loyalty points
+    const loyaltyPoints = await prisma.loyaltyPoints.findUnique({
+      where: { visitorId_shopId: { visitorId: visitor.id, shopId: shop.id } },
+    });
+
+    const points = loyaltyPoints?.points || 0;
+    const tiers = shop.loyaltyProgram.tiers;
+
+    // Determine current tier
+    let currentTier = tiers[0];
+    let nextTier = tiers[1] || null;
+
+    for (let i = tiers.length - 1; i >= 0; i--) {
+      if (points >= tiers[i].minPoints) {
+        currentTier = tiers[i];
+        nextTier = tiers[i + 1] || null;
+        break;
+      }
+    }
+
+    res.json({
+      success: true,
+      data: {
+        points,
+        lifetimePoints: loyaltyPoints?.lifetimePoints || 0,
+        tier: currentTier.name,
+        tierColor: currentTier.color,
+        tierMultiplier: currentTier.pointMultiplier,
+        freeShipping: currentTier.freeShipping,
+        nextTier: nextTier?.name || null,
+        pointsToNext: nextTier ? Math.max(0, nextTier.minPoints - points) : 0,
+      },
+    });
+  } catch (error) {
+    console.error('Loyalty balance error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+/**
+ * Get loyalty history
+ * POST /api/proxy/loyalty/history
+ */
+router.post('/loyalty/history', async (req: Request, res: Response) => {
+  try {
+    const { shop: shopDomain, customerId, email } = req.body as LoyaltyBalanceRequest;
+
+    if (!shopDomain) {
+      res.status(400).json({ success: false, error: 'Missing shop domain' });
+      return;
+    }
+
+    const shop = await prisma.shop.findUnique({
+      where: { domain: shopDomain },
+    });
+
+    if (!shop) {
+      res.status(404).json({ success: false, error: 'Shop not found' });
+      return;
+    }
+
+    // Find visitor
+    let visitor = null;
+    if (customerId) {
+      visitor = await prisma.visitor.findFirst({
+        where: { shopId: shop.id, customerId },
+      });
+    }
+    if (!visitor && email) {
+      visitor = await prisma.visitor.findFirst({
+        where: { shopId: shop.id, email },
+      });
+    }
+
+    if (!visitor) {
+      res.json({ success: true, data: [] });
+      return;
+    }
+
+    const loyaltyPoints = await prisma.loyaltyPoints.findUnique({
+      where: { visitorId_shopId: { visitorId: visitor.id, shopId: shop.id } },
+      include: {
+        transactions: {
+          orderBy: { createdAt: 'desc' },
+          take: 20,
+        },
+      },
+    });
+
+    res.json({
+      success: true,
+      data: loyaltyPoints?.transactions || [],
+    });
+  } catch (error) {
+    console.error('Loyalty history error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// REFERRAL - Arkadaş getir
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Get or create referral code
+ * POST /api/proxy/referral/code
+ */
+router.post('/referral/code', async (req: Request, res: Response) => {
+  try {
+    const { shop: shopDomain, customerId, email } = req.body;
+
+    if (!shopDomain || (!customerId && !email)) {
+      res.status(400).json({ success: false, error: 'Missing required fields' });
+      return;
+    }
+
+    const shop = await prisma.shop.findUnique({
+      where: { domain: shopDomain },
+      include: { referralProgram: true },
+    });
+
+    if (!shop || !shop.referralProgram?.isActive) {
+      res.status(404).json({ success: false, error: 'Referral program not found' });
+      return;
+    }
+
+    // Find or create visitor
+    let visitor = await prisma.visitor.findFirst({
+      where: {
+        shopId: shop.id,
+        OR: [
+          { customerId: customerId || undefined },
+          { email: email || undefined },
+        ],
+      },
+    });
+
+    if (!visitor) {
+      res.status(404).json({ success: false, error: 'Customer not found' });
+      return;
+    }
+
+    // Check for existing referral code
+    let referral = await prisma.referral.findFirst({
+      where: {
+        programId: shop.referralProgram.id,
+        referrerVisitorId: visitor.id,
+      },
+    });
+
+    if (!referral) {
+      // Generate unique code
+      const code = `REF-${nanoid(8).toUpperCase()}`;
+
+      referral = await prisma.referral.create({
+        data: {
+          programId: shop.referralProgram.id,
+          referrerVisitorId: visitor.id,
+          code,
+        },
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        code: referral.code,
+        shareUrl: `https://${shopDomain}?ref=${referral.code}`,
+        referrerReward: shop.referralProgram.referrerValue,
+        refereeReward: shop.referralProgram.refereeValue,
+      },
+    });
+  } catch (error) {
+    console.error('Referral code error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+/**
+ * Apply referral code
+ * POST /api/proxy/referral/apply
+ */
+router.post('/referral/apply', async (req: Request, res: Response) => {
+  try {
+    const { shop: shopDomain, code, email } = req.body;
+
+    if (!shopDomain || !code || !email) {
+      res.status(400).json({ success: false, error: 'Missing required fields' });
+      return;
+    }
+
+    const shop = await prisma.shop.findUnique({
+      where: { domain: shopDomain },
+      include: { referralProgram: true },
+    });
+
+    if (!shop || !shop.referralProgram?.isActive) {
+      res.status(404).json({ success: false, error: 'Referral program not found' });
+      return;
+    }
+
+    // Find referral
+    const referral = await prisma.referral.findUnique({
+      where: { code },
+    });
+
+    if (!referral || referral.programId !== shop.referralProgram.id) {
+      res.status(404).json({ success: false, error: 'Invalid referral code' });
+      return;
+    }
+
+    if (referral.refereeVisitorId) {
+      res.status(400).json({ success: false, error: 'Referral code already used' });
+      return;
+    }
+
+    // Find or create referee visitor
+    let referee = await prisma.visitor.findFirst({
+      where: { shopId: shop.id, email },
+    });
+
+    if (!referee) {
+      referee = await prisma.visitor.create({
+        data: {
+          shopId: shop.id,
+          email,
+          fingerprint: `email_${email}`,
+        },
+      });
+    }
+
+    // Check if referee is the same as referrer
+    if (referee.id === referral.referrerVisitorId) {
+      res.status(400).json({ success: false, error: 'Cannot use your own referral code' });
+      return;
+    }
+
+    // Update referral
+    await prisma.referral.update({
+      where: { id: referral.id },
+      data: {
+        refereeVisitorId: referee.id,
+        refereeRewarded: true, // Give immediate reward
+      },
+    });
+
+    res.json({
+      success: true,
+      data: {
+        reward: shop.referralProgram.refereeValue,
+        rewardType: shop.referralProgram.refereeReward,
+        message: `Tebrikler! ${shop.referralProgram.refereeValue} ${shop.referralProgram.refereeReward === 'POINTS' ? 'puan' : 'TL indirim'} kazandınız!`,
+      },
+    });
+  } catch (error) {
+    console.error('Referral apply error:', error);
     res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });
