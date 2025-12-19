@@ -1,6 +1,9 @@
 api_version = "2025-10"
 
 [[extensions]]
+
+uid = "d41d22c4-c789-3de8-38fe-59f133bfe0b2c7f67498"
+
 type = "theme"
 name = "Gamification Widget"
 handle = "gamification-widget"

@@ -3,6 +3,22 @@
   Spin Wheel, Scratch Card, Popup Games
 {% endcomment %}
 
+{% schema %}
+{
+  "name": "Gamification Widget",
+  "target": "section",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enabled",
+      "label": "Enable Gamification Widget",
+      "default": true
+    }
+  ]
+}
+{% endschema %}
+
+{% if block.settings.enabled %}
 <div id="gamification-engine-container"
      data-shop="{{ shop.permanent_domain }}"
      data-customer-id="{{ customer.id | default: '' }}"
@@ -15,4 +31,5 @@
 {{ 'gamification-widget.css' | asset_url | stylesheet_tag }}
 
 <script src="{{ 'gamification-widget.js' | asset_url }}" defer></script>
+{% endif %}
 

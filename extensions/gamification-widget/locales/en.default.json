@@ -1,0 +1,10 @@
+{
+  "gamification": {
+    "name": "Gamification Widget",
+    "popup": {
+      "title": "Gamification Popup",
+      "description": "Display spin wheel, scratch card or popup games"
+    }
+  }
+}
+
