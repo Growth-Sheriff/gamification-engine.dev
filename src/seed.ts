@@ -63,7 +63,8 @@ async function seed() {
       },
       include: { segments: true },
     });
-    console.log('✅ Spin wheel game created with', (game as { segments: unknown[] }).segments.length, 'segments');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    console.log('✅ Spin wheel game created with', (game as any).segments.length, 'segments');
   } else {
     console.log('✅ Spin wheel game already exists');
   }
