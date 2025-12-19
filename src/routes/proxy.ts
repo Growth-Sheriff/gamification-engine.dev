@@ -43,8 +43,10 @@ interface InitRequest {
  */
 router.post('/init', async (req: Request, res: Response) => {
   try {
-    // Get shop domain from App Proxy header or query
-    const shopDomain = req.get('X-Shopify-Shop-Domain') || req.query.shop as string;
+    // Get shop domain from App Proxy header, query, or body
+    const shopDomain = req.get('X-Shopify-Shop-Domain') ||
+                       req.query.shop as string ||
+                       req.body?.shop as string;
 
     if (!shopDomain) {
       res.status(400).json({ success: false, error: 'Missing shop domain' });
