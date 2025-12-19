@@ -1,0 +1,11 @@
+api_version = "2025-10"
+
+[[extensions]]
+type = "theme"
+name = "Gamification Widget"
+handle = "gamification-widget"
+
+  [[extensions.targeting]]
+  target = "body"
+  template = ["index", "product", "collection", "cart"]
+

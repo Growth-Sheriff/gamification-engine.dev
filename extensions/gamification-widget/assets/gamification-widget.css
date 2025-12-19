@@ -1,0 +1,626 @@
+/**
+ * Gamification Engine - Widget CSS
+ * Modern 2025 Design with Soft Animations
+ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CSS VARIABLES
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+  --ge-primary: #7367f0;
+  --ge-primary-light: #8a7ff5;
+  --ge-success: #28c76f;
+  --ge-danger: #ea5455;
+  --ge-warning: #ff9f43;
+  --ge-info: #00cfe8;
+  --ge-dark: #4b4b4b;
+  --ge-light: #f8f8f8;
+  --ge-white: #ffffff;
+  --ge-overlay: rgba(0, 0, 0, 0.6);
+  --ge-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  --ge-radius: 20px;
+  --ge-radius-sm: 12px;
+  --ge-transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  --ge-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   OVERLAY & MODAL
+   ═══════════════════════════════════════════════════════════════════════════ */
+.ge-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--ge-overlay);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 999998;
+  opacity: 0;
+  visibility: hidden;
+  transition: var(--ge-transition);
+}
+
+.ge-overlay.ge-active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.ge-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  background: var(--ge-white);
+  border-radius: var(--ge-radius);
+  box-shadow: var(--ge-shadow);
+  z-index: 999999;
+  opacity: 0;
+  visibility: hidden;
+  transition: var(--ge-transition);
+  max-width: 95vw;
+  max-height: 95vh;
+  overflow: hidden;
+  font-family: var(--ge-font);
+}
+
+.ge-modal.ge-active {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.ge-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--ge-transition);
+  z-index: 10;
+}
+
+.ge-close-btn:hover {
+  background: rgba(0, 0, 0, 0.2);
+  transform: rotate(90deg);
+}
+
+.ge-close-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke: var(--ge-dark);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SPIN WHEEL
+   ═══════════════════════════════════════════════════════════════════════════ */
+.ge-spin-wheel {
+  padding: 40px;
+  text-align: center;
+  min-width: 400px;
+}
+
+@media (max-width: 480px) {
+  .ge-spin-wheel {
+    padding: 24px;
+    min-width: auto;
+    width: 100%;
+  }
+}
+
+.ge-spin-wheel__title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--ge-dark);
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+
+.ge-spin-wheel__subtitle {
+  font-size: 16px;
+  color: #6c757d;
+  margin-bottom: 24px;
+}
+
+.ge-spin-wheel__container {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 24px;
+}
+
+.ge-spin-wheel__pointer {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+.ge-spin-wheel__canvas {
+  transition: transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.15));
+}
+
+.ge-spin-wheel__canvas.ge-spinning {
+  transition: transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+}
+
+.ge-spin-wheel__center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, var(--ge-primary) 0%, var(--ge-primary-light) 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(115, 103, 240, 0.4);
+}
+
+.ge-spin-wheel__center svg {
+  width: 24px;
+  height: 24px;
+  fill: white;
+}
+
+.ge-spin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 48px;
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, var(--ge-primary) 0%, var(--ge-primary-light) 100%);
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 8px 25px rgba(115, 103, 240, 0.4);
+  transition: var(--ge-transition);
+  font-family: var(--ge-font);
+}
+
+.ge-spin-btn:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(115, 103, 240, 0.5);
+}
+
+.ge-spin-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ge-spin-btn svg {
+  width: 24px;
+  height: 24px;
+  animation: ge-rotate 2s linear infinite;
+}
+
+@keyframes ge-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SCRATCH CARD
+   ═══════════════════════════════════════════════════════════════════════════ */
+.ge-scratch-card {
+  padding: 40px;
+  text-align: center;
+  min-width: 380px;
+}
+
+@media (max-width: 480px) {
+  .ge-scratch-card {
+    padding: 24px;
+    min-width: auto;
+    width: 100%;
+  }
+}
+
+.ge-scratch-card__title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--ge-dark);
+  margin-bottom: 8px;
+}
+
+.ge-scratch-card__subtitle {
+  font-size: 16px;
+  color: #6c757d;
+  margin-bottom: 24px;
+}
+
+.ge-scratch-card__container {
+  position: relative;
+  display: inline-block;
+  width: 280px;
+  height: 180px;
+  border-radius: var(--ge-radius-sm);
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  cursor: crosshair;
+}
+
+.ge-scratch-card__prize {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+  font-family: var(--ge-font);
+}
+
+.ge-scratch-card__prize-icon {
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+
+.ge-scratch-card__prize-text {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ge-dark);
+}
+
+.ge-scratch-card__canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  touch-action: none;
+}
+
+.ge-scratch-card__hint {
+  margin-top: 16px;
+  font-size: 14px;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   POPUP
+   ═══════════════════════════════════════════════════════════════════════════ */
+.ge-popup {
+  padding: 48px;
+  text-align: center;
+  min-width: 380px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+@media (max-width: 480px) {
+  .ge-popup {
+    padding: 32px 24px;
+    min-width: auto;
+    width: 100%;
+  }
+}
+
+.ge-popup .ge-close-btn {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.ge-popup .ge-close-btn svg {
+  stroke: white;
+}
+
+.ge-popup__icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.ge-popup__title {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.ge-popup__subtitle {
+  font-size: 18px;
+  opacity: 0.9;
+  margin-bottom: 24px;
+}
+
+.ge-popup__discount {
+  font-size: 56px;
+  font-weight: 800;
+  margin-bottom: 24px;
+  text-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.ge-popup__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 48px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ge-primary);
+  background: white;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  transition: var(--ge-transition);
+  font-family: var(--ge-font);
+}
+
+.ge-popup__btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESULT SCREEN
+   ═══════════════════════════════════════════════════════════════════════════ */
+.ge-result {
+  padding: 48px;
+  text-align: center;
+  min-width: 380px;
+}
+
+@media (max-width: 480px) {
+  .ge-result {
+    padding: 32px 24px;
+    min-width: auto;
+    width: 100%;
+  }
+}
+
+.ge-result--win {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  color: white;
+}
+
+.ge-result--lose {
+  background: linear-gradient(135deg, #606c88 0%, #3f4c6b 100%);
+  color: white;
+}
+
+.ge-result__icon {
+  font-size: 72px;
+  margin-bottom: 16px;
+  animation: ge-bounce 0.6s ease-out;
+}
+
+@keyframes ge-bounce {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.ge-result__title {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.ge-result__subtitle {
+  font-size: 18px;
+  opacity: 0.9;
+  margin-bottom: 24px;
+}
+
+.ge-result__code-container {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--ge-radius-sm);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.ge-result__code-label {
+  font-size: 14px;
+  opacity: 0.8;
+  margin-bottom: 8px;
+}
+
+.ge-result__code {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  font-family: monospace;
+}
+
+.ge-result__copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 40px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ge-success);
+  background: white;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  transition: var(--ge-transition);
+  font-family: var(--ge-font);
+}
+
+.ge-result__copy-btn:hover {
+  transform: translateY(-3px);
+}
+
+.ge-result__copy-btn.ge-copied {
+  background: var(--ge-success);
+  color: white;
+}
+
+.ge-result__expiry {
+  margin-top: 16px;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.ge-result__close-btn {
+  margin-top: 16px;
+  padding: 12px 32px;
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: var(--ge-transition);
+  font-family: var(--ge-font);
+}
+
+.ge-result__close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EMAIL FORM
+   ═══════════════════════════════════════════════════════════════════════════ */
+.ge-email-form {
+  margin-top: 24px;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: var(--ge-radius-sm);
+}
+
+.ge-email-form__label {
+  font-size: 14px;
+  color: #6c757d;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.ge-email-form__input-group {
+  display: flex;
+  gap: 8px;
+}
+
+.ge-email-form__input {
+  flex: 1;
+  padding: 14px 20px;
+  font-size: 16px;
+  border: 2px solid #e9ecef;
+  border-radius: 50px;
+  outline: none;
+  transition: var(--ge-transition);
+  font-family: var(--ge-font);
+}
+
+.ge-email-form__input:focus {
+  border-color: var(--ge-primary);
+}
+
+.ge-email-form__submit {
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  background: var(--ge-primary);
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: var(--ge-transition);
+  font-family: var(--ge-font);
+}
+
+.ge-email-form__submit:hover {
+  background: var(--ge-primary-light);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CONFETTI
+   ═══════════════════════════════════════════════════════════════════════════ */
+.ge-confetti {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 1000000;
+  overflow: hidden;
+}
+
+.ge-confetti-piece {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  animation: ge-confetti-fall 3s ease-out forwards;
+}
+
+@keyframes ge-confetti-fall {
+  0% {
+    transform: translateY(-100%) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LOADING
+   ═══════════════════════════════════════════════════════════════════════════ */
+.ge-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+}
+
+.ge-loading__spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(115, 103, 240, 0.2);
+  border-top-color: var(--ge-primary);
+  border-radius: 50%;
+  animation: ge-spin 1s linear infinite;
+}
+
+@keyframes ge-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ACCESSIBILITY
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus styles */
+.ge-spin-btn:focus,
+.ge-popup__btn:focus,
+.ge-result__copy-btn:focus,
+.ge-email-form__submit:focus {
+  outline: 3px solid rgba(115, 103, 240, 0.5);
+  outline-offset: 2px;
+}
+

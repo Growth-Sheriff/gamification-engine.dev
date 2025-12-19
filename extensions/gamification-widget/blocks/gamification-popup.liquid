@@ -1,0 +1,18 @@
+{% comment %}
+  Gamification Engine - Main Widget Block
+  Spin Wheel, Scratch Card, Popup Games
+{% endcomment %}
+
+<div id="gamification-engine-container"
+     data-shop="{{ shop.permanent_domain }}"
+     data-customer-id="{{ customer.id | default: '' }}"
+     data-customer-email="{{ customer.email | default: '' }}"
+     data-page-type="{{ request.page_type }}"
+     data-page-url="{{ request.path }}"
+     style="display: none;">
+</div>
+
+{{ 'gamification-widget.css' | asset_url | stylesheet_tag }}
+
+<script src="{{ 'gamification-widget.js' | asset_url }}" defer></script>
+

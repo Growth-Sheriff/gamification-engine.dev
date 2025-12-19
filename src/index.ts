@@ -107,6 +107,20 @@ app.set('views', path.join(__dirname, '../views'));
 
 app.use('/public', express.static(path.join(__dirname, '../public')));
 app.use('/assets', express.static(path.join(__dirname, '../public')));
+app.use('/widget', express.static(path.join(__dirname, '../public/widget'), {
+  setHeaders: (res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+  },
+}));
+
+// Widget loader script
+app.get('/widget.js', (_req: Request, res: Response) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.sendFile(path.join(__dirname, '../public/widget.js'));
+});
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ROUTES
