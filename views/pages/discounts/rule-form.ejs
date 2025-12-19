@@ -1,0 +1,60 @@
+﻿<!DOCTYPE html>
+<html lang="en" class="light-style layout-navbar-fixed layout-menu-fixed" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kural Form - Gamification Engine</title>
+  <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+  <link rel="stylesheet" href="/assets/css/core.css" />
+</head>
+<body>
+  <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+      <%- include('../../partials/sidebar', { active: 'rules' }) %>
+      <div class="layout-page">
+        <%- include('../../partials/navbar') %>
+        <div class="content-wrapper">
+          <div class="container-xxl flex-grow-1 container-p-y">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h4><%= typeof rule !== 'undefined' && rule ? 'Kural Duzenle' : 'Yeni Kural' %></h4>
+              <div class="d-flex gap-2">
+                <a href="/discounts/rules" class="btn btn-outline-secondary">Geri</a>
+                <button type="submit" form="ruleForm" class="btn btn-primary">Kaydet</button>
+              </div>
+            </div>
+            <form id="ruleForm" method="POST">
+              <div class="card">
+                <div class="card-body">
+                  <div class="mb-3">
+                    <label class="form-label">Kural Adi</label>
+                    <input type="text" class="form-control" name="name" value="<%= typeof rule !== 'undefined' && rule ? rule.name : '' %>" required>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label">Max Oyun</label>
+                      <input type="number" class="form-control" name="maxPlaysPerVisitor" value="<%= typeof rule !== 'undefined' && rule ? rule.maxPlaysPerVisitor : 1 %>">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label">Gecerlilik (gun)</label>
+                      <input type="number" class="form-control" name="validityDays" value="<%= typeof rule !== 'undefined' && rule ? rule.validityDays : 7 %>">
+                    </div>
+                  </div>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="isActive" <%= typeof rule !== 'undefined' && rule && rule.isActive ? 'checked' : 'checked' %>>
+                    <label class="form-check-label">Aktif</label>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+          <%- include('../../partials/footer') %>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/assets/js/menu.js"></script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+﻿<!DOCTYPE html>
+<html lang="en" class="light-style layout-navbar-fixed layout-menu-fixed" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Popup - Gamification Engine</title>
+  <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+  <link rel="stylesheet" href="/assets/css/core.css" />
+</head>
+<body>
+  <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+      <%- include('../../partials/sidebar', { active: 'popup' }) %>
+      <div class="layout-page">
+        <%- include('../../partials/navbar') %>
+        <div class="content-wrapper">
+          <div class="container-xxl flex-grow-1 container-p-y">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h4><i class="ti ti-window me-2"></i>Popup</h4>
+              <button class="btn btn-primary"><i class="ti ti-device-floppy me-1"></i>Kaydet</button>
+            </div>
+            <div class="row g-4">
+              <div class="col-lg-6">
+                <div class="card">
+                  <div class="card-header"><h5 class="mb-0">Ayarlar</h5></div>
+                  <div class="card-body">
+                    <div class="mb-3">
+                      <label class="form-label">Baslik</label>
+                      <input type="text" class="form-control" value="Ozel Teklif!">
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label">Indirim Degeri</label>
+                      <input type="number" class="form-control" value="10">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="card">
+                  <div class="card-header"><h5 class="mb-0">Onizleme</h5></div>
+                  <div class="card-body text-center">
+                    <div style="width:250px;margin:0 auto;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:16px;padding:30px;color:white;text-align:center;">
+                      <div style="font-size:32px;margin-bottom:10px;">🎁</div>
+                      <h4>%10 INDIRIM</h4>
+                      <button style="background:white;color:#667eea;border:none;padding:8px 20px;border-radius:20px;font-weight:600;">Al</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <%- include('../../partials/footer') %>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/assets/js/menu.js"></script>
+</body>
+</html>
