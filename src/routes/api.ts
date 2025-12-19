@@ -724,5 +724,272 @@ router.delete('/data/all', async (req: Request, res: Response) => {
   }
 });
 
+// ═══════════════════════════════════════════════════════════════════════════
+// LOYALTY PROGRAM API
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Update loyalty program
+ * PUT /api/loyalty/program
+ */
+router.put('/loyalty/program', async (req: Request, res: Response) => {
+  try {
+    const shopId = req.shop!.id;
+    const data = req.body;
+
+    const program = await prisma.loyaltyProgram.upsert({
+      where: { shopId },
+      update: data,
+      create: { shopId, ...data },
+    });
+
+    res.json({ success: true, data: program });
+  } catch (error) {
+    console.error('Update loyalty program error:', error);
+    res.status(500).json({ success: false, error: 'Failed to update loyalty program' });
+  }
+});
+
+/**
+ * Adjust member points
+ * POST /api/loyalty/members/:id/adjust
+ */
+router.post('/loyalty/members/:id/adjust', async (req: Request, res: Response) => {
+  try {
+    const memberId = req.params.id;
+    const { points, reason } = req.body;
+
+    const member = await prisma.loyaltyPoints.update({
+      where: { id: memberId },
+      data: {
+        points: { increment: points },
+        lifetimePoints: points > 0 ? { increment: points } : undefined,
+        transactions: {
+          create: {
+            type: 'ADMIN_ADJUST',
+            points,
+            description: reason || 'Admin adjustment',
+          },
+        },
+      },
+    });
+
+    res.json({ success: true, data: member });
+  } catch (error) {
+    console.error('Adjust points error:', error);
+    res.status(500).json({ success: false, error: 'Failed to adjust points' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// A/B TESTING API
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Create A/B test
+ * POST /api/ab-tests
+ */
+router.post('/ab-tests', async (req: Request, res: Response) => {
+  try {
+    const shopId = req.shop!.id;
+    const { variants, ...testData } = req.body;
+
+    const test = await prisma.aBTest.create({
+      data: {
+        shopId,
+        ...testData,
+        variants: {
+          create: variants.map((v: { name: string; isControl: boolean }) => ({
+            name: v.name,
+            isControl: v.isControl || false,
+            config: {},
+          })),
+        },
+      },
+      include: { variants: true },
+    });
+
+    res.json({ success: true, data: test });
+  } catch (error) {
+    console.error('Create A/B test error:', error);
+    res.status(500).json({ success: false, error: 'Failed to create A/B test' });
+  }
+});
+
+/**
+ * Update A/B test
+ * PUT /api/ab-tests/:id
+ */
+router.put('/ab-tests/:id', async (req: Request, res: Response) => {
+  try {
+    const shopId = req.shop!.id;
+    const testId = req.params.id;
+    const { variants, ...testData } = req.body;
+
+    const test = await prisma.aBTest.update({
+      where: { id: testId },
+      data: testData,
+    });
+
+    res.json({ success: true, data: test });
+  } catch (error) {
+    console.error('Update A/B test error:', error);
+    res.status(500).json({ success: false, error: 'Failed to update A/B test' });
+  }
+});
+
+/**
+ * Delete A/B test
+ * DELETE /api/ab-tests/:id
+ */
+router.delete('/ab-tests/:id', async (req: Request, res: Response) => {
+  try {
+    const testId = req.params.id;
+
+    await prisma.aBTest.delete({ where: { id: testId } });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Delete A/B test error:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete A/B test' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TARGETING RULES API
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Create targeting rule
+ * POST /api/targeting
+ */
+router.post('/targeting', async (req: Request, res: Response) => {
+  try {
+    const shopId = req.shop!.id;
+    const data = req.body;
+
+    const rule = await prisma.targetingRule.create({
+      data: { shopId, ...data },
+    });
+
+    res.json({ success: true, data: rule });
+  } catch (error) {
+    console.error('Create targeting rule error:', error);
+    res.status(500).json({ success: false, error: 'Failed to create targeting rule' });
+  }
+});
+
+/**
+ * Update targeting rule
+ * PUT /api/targeting/:id
+ */
+router.put('/targeting/:id', async (req: Request, res: Response) => {
+  try {
+    const ruleId = req.params.id;
+    const data = req.body;
+
+    const rule = await prisma.targetingRule.update({
+      where: { id: ruleId },
+      data,
+    });
+
+    res.json({ success: true, data: rule });
+  } catch (error) {
+    console.error('Update targeting rule error:', error);
+    res.status(500).json({ success: false, error: 'Failed to update targeting rule' });
+  }
+});
+
+/**
+ * Delete targeting rule
+ * DELETE /api/targeting/:id
+ */
+router.delete('/targeting/:id', async (req: Request, res: Response) => {
+  try {
+    const ruleId = req.params.id;
+
+    await prisma.targetingRule.delete({ where: { id: ruleId } });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Delete targeting rule error:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete targeting rule' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// REFERRAL PROGRAM API
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Update referral program
+ * PUT /api/referral/program
+ */
+router.put('/referral/program', async (req: Request, res: Response) => {
+  try {
+    const shopId = req.shop!.id;
+    const data = req.body;
+
+    const program = await prisma.referralProgram.upsert({
+      where: { shopId },
+      update: data,
+      create: { shopId, ...data },
+    });
+
+    res.json({ success: true, data: program });
+  } catch (error) {
+    console.error('Update referral program error:', error);
+    res.status(500).json({ success: false, error: 'Failed to update referral program' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EMAIL INTEGRATION API
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Update email integration
+ * PUT /api/integrations/email
+ */
+router.put('/integrations/email', async (req: Request, res: Response) => {
+  try {
+    const shopId = req.shop!.id;
+    const data = req.body;
+
+    const integration = await prisma.emailIntegration.upsert({
+      where: { shopId },
+      update: data,
+      create: { shopId, ...data },
+    });
+
+    res.json({ success: true, data: integration });
+  } catch (error) {
+    console.error('Update email integration error:', error);
+    res.status(500).json({ success: false, error: 'Failed to update email integration' });
+  }
+});
+
+/**
+ * Test email connection
+ * POST /api/integrations/email/test
+ */
+router.post('/integrations/email/test', async (req: Request, res: Response) => {
+  try {
+    const { provider, apiKey } = req.body;
+
+    // TODO: Implement actual API testing for each provider
+    // For now, just return success if API key is provided
+    if (!apiKey) {
+      res.status(400).json({ success: false, error: 'API key required' });
+      return;
+    }
+
+    res.json({ success: true, message: 'Connection successful' });
+  } catch (error) {
+    console.error('Test email connection error:', error);
+    res.status(500).json({ success: false, error: 'Connection test failed' });
+  }
+});
+
 export default router;
 

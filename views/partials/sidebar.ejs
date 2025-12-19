@@ -86,9 +86,54 @@
       </a>
     </li>
 
+    <!-- Growth Header -->
+    <li class="menu-header small text-uppercase">
+      <span class="menu-header-text" style="color: rgba(255,255,255,0.5);">Buyume</span>
+    </li>
+
+    <!-- Loyalty -->
+    <li class="menu-item <%= typeof active !== 'undefined' && active === 'loyalty' ? 'active' : '' %>">
+      <a href="/loyalty" class="menu-link">
+        <i class="menu-icon ti ti-star"></i>
+        <div>Sadakat</div>
+      </a>
+    </li>
+
+    <!-- Referral -->
+    <li class="menu-item <%= typeof active !== 'undefined' && active === 'referral' ? 'active' : '' %>">
+      <a href="/referral" class="menu-link">
+        <i class="menu-icon ti ti-users-plus"></i>
+        <div>Arkadas Getir</div>
+      </a>
+    </li>
+
+    <!-- Targeting -->
+    <li class="menu-item <%= typeof active !== 'undefined' && active === 'targeting' ? 'active' : '' %>">
+      <a href="/targeting" class="menu-link">
+        <i class="menu-icon ti ti-target"></i>
+        <div>Hedefleme</div>
+      </a>
+    </li>
+
+    <!-- A/B Tests -->
+    <li class="menu-item <%= typeof active !== 'undefined' && active === 'ab-tests' ? 'active' : '' %>">
+      <a href="/ab-tests" class="menu-link">
+        <i class="menu-icon ti ti-ab"></i>
+        <div>A/B Test</div>
+      </a>
+    </li>
+
     <!-- Settings Header -->
     <li class="menu-header small text-uppercase">
       <span class="menu-header-text" style="color: rgba(255,255,255,0.5);">Ayarlar</span>
+    </li>
+
+    <!-- Email Integration -->
+    <li class="menu-item <%= typeof active !== 'undefined' && active === 'integrations' ? 'active' : '' %>">
+      <a href="/integrations/email" class="menu-link">
+        <i class="menu-icon ti ti-mail"></i>
+        <div>Email</div>
+      </a>
     </li>
 
     <!-- Settings -->
