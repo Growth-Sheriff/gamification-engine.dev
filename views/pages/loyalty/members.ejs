@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" class="light-style layout-navbar-fixed layout-menu-fixed" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Uyeler - Gamification Engine</title>
+  <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+  <link rel="stylesheet" href="/assets/css/core.css" />
+</head>
+<body>
+  <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+      <%- include('../../partials/sidebar', { active: 'loyalty' }) %>
+      <div class="layout-page">
+        <%- include('../../partials/navbar') %>
+        <div class="content-wrapper">
+          <div class="container-xxl flex-grow-1 container-p-y">
+
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <div>
+                <nav aria-label="breadcrumb">
+                  <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="/loyalty">Sadakat</a></li>
+                    <li class="breadcrumb-item active">Uyeler</li>
+                  </ol>
+                </nav>
+                <h4 class="mb-0 mt-2"><i class="ti ti-users me-2"></i>Sadakat Uyeleri</h4>
+              </div>
+              <button class="btn btn-outline-primary">
+                <i class="ti ti-download me-1"></i>CSV Indir
+              </button>
+            </div>
+
+            <!-- Table -->
+            <div class="card">
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="table table-modern mb-0">
+                    <thead>
+                      <tr>
+                        <th>Uye</th>
+                        <th>Puan</th>
+                        <th>Seviye</th>
+                        <th>Toplam Kazanim</th>
+                        <th>Son Aktivite</th>
+                        <th>Islem</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% if (typeof members !== 'undefined' && members.length > 0) { %>
+                        <% members.forEach(function(member) { %>
+                          <tr>
+                            <td>
+                              <div class="d-flex align-items-center">
+                                <div class="avatar avatar-sm me-2">
+                                  <span class="avatar-initial rounded-circle bg-label-primary">
+                                    <i class="ti ti-user"></i>
+                                  </span>
+                                </div>
+                                <span><%= member.visitorId.substring(0, 12) %>...</span>
+                              </div>
+                            </td>
+                            <td><strong><%= member.points.toLocaleString() %></strong></td>
+                            <td>
+                              <span class="badge" style="background: <%= member.currentTier === 'Platinum' ? '#E5E4E2' : member.currentTier === 'Gold' ? '#FFD700' : member.currentTier === 'Silver' ? '#C0C0C0' : '#CD7F32' %>; color: #333;">
+                                <%= member.currentTier || 'Bronze' %>
+                              </span>
+                            </td>
+                            <td><%= member.lifetimePoints.toLocaleString() %></td>
+                            <td><%= member.updatedAt ? new Date(member.updatedAt).toLocaleDateString('tr-TR') : '-' %></td>
+                            <td>
+                              <button class="btn btn-sm btn-outline-primary" onclick="adjustPoints('<%= member.id %>')">
+                                <i class="ti ti-edit"></i>
+                              </button>
+                            </td>
+                          </tr>
+                        <% }); %>
+                      <% } else { %>
+                        <tr>
+                          <td colspan="6" class="text-center py-5">
+                            <i class="ti ti-users-minus mb-3" style="font-size: 3rem; color: #ccc;"></i>
+                            <p class="text-muted mb-0">Henuz uye yok</p>
+                          </td>
+                        </tr>
+                      <% } %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <% if (typeof pagination !== 'undefined' && pagination.totalPages > 1) { %>
+                <div class="card-footer">
+                  <nav>
+                    <ul class="pagination justify-content-center mb-0">
+                      <li class="page-item <%= !pagination.hasPrev ? 'disabled' : '' %>">
+                        <a class="page-link" href="?page=<%= pagination.page - 1 %>">Onceki</a>
+                      </li>
+                      <li class="page-item active">
+                        <span class="page-link"><%= pagination.page %> / <%= pagination.totalPages %></span>
+                      </li>
+                      <li class="page-item <%= !pagination.hasNext ? 'disabled' : '' %>">
+                        <a class="page-link" href="?page=<%= pagination.page + 1 %>">Sonraki</a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+              <% } %>
+            </div>
+
+          </div>
+          <%- include('../../partials/footer') %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/assets/js/menu.js"></script>
+  <script src="/assets/js/app.js"></script>
+  <script>
+    function adjustPoints(memberId) {
+      const points = prompt('Eklenecek/cikarilacak puan miktari (negatif de olabilir):');
+      if (points !== null) {
+        const reason = prompt('Aciklama:');
+        api.post(`/api/loyalty/members/${memberId}/adjust`, {
+          points: parseInt(points),
+          reason: reason || 'Admin ayarlamasi'
+        }).then(() => {
+          showToast('Puan guncellendi!', 'success');
+          location.reload();
+        }).catch(err => showToast('Hata: ' + err.message, 'danger'));
+      }
+    }
+  </script>
+</body>
+</html>
+

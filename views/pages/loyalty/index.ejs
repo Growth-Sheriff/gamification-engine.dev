@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en" class="light-style layout-navbar-fixed layout-menu-fixed" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sadakat Programi - Gamification Engine</title>
+  <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+  <link rel="stylesheet" href="/assets/css/core.css" />
+  <style>
+    .tier-card { text-align: center; padding: 2rem; border-radius: 16px; position: relative; overflow: hidden; }
+    .tier-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+    .tier-icon { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem; }
+    .tier-name { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .tier-points { font-size: 0.875rem; color: #666; margin-bottom: 1rem; }
+    .tier-benefits { text-align: left; font-size: 0.875rem; }
+    .tier-benefits li { padding: 0.25rem 0; }
+  </style>
+</head>
+<body>
+  <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+      <%- include('../../partials/sidebar', { active: 'loyalty' }) %>
+      <div class="layout-page">
+        <%- include('../../partials/navbar') %>
+        <div class="content-wrapper">
+          <div class="container-xxl flex-grow-1 container-p-y">
+
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <div>
+                <h4 class="mb-1"><i class="ti ti-star me-2"></i>Sadakat Programi</h4>
+                <p class="text-muted mb-0">Musteri sadakat ve puan sistemi</p>
+              </div>
+              <div class="d-flex gap-2">
+                <button class="btn btn-primary" onclick="saveProgram()">
+                  <i class="ti ti-device-floppy me-1"></i>Kaydet
+                </button>
+              </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="row g-4 mb-4">
+              <div class="col-sm-6 col-xl-3">
+                <div class="card stats-card">
+                  <div class="stats-icon" style="background: rgba(115, 103, 240, 0.12);">
+                    <i class="ti ti-users" style="color: #7367f0;"></i>
+                  </div>
+                  <div class="stats-value"><%= typeof stats !== 'undefined' ? stats.totalMembers : 0 %></div>
+                  <div class="stats-label">Toplam Uye</div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-xl-3">
+                <div class="card stats-card">
+                  <div class="stats-icon" style="background: rgba(255, 159, 67, 0.12);">
+                    <i class="ti ti-coin" style="color: #ff9f43;"></i>
+                  </div>
+                  <div class="stats-value"><%= typeof stats !== 'undefined' ? stats.totalPoints.toLocaleString() : 0 %></div>
+                  <div class="stats-label">Toplam Puan</div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-xl-3">
+                <div class="card stats-card">
+                  <div class="stats-icon" style="background: rgba(40, 199, 111, 0.12);">
+                    <i class="ti ti-gift" style="color: #28c76f;"></i>
+                  </div>
+                  <div class="stats-value"><%= typeof stats !== 'undefined' ? stats.totalRedeemed : 0 %></div>
+                  <div class="stats-label">Kullanilan Odul</div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-xl-3">
+                <div class="card stats-card">
+                  <div class="stats-icon" style="background: rgba(0, 207, 232, 0.12);">
+                    <i class="ti ti-chart-line" style="color: #00cfe8;"></i>
+                  </div>
+                  <div class="stats-value"><%= typeof program !== 'undefined' && program.isActive ? 'Aktif' : 'Pasif' %></div>
+                  <div class="stats-label">Program Durumu</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-4">
+              <!-- Ayarlar -->
+              <div class="col-lg-6">
+                <div class="card mb-4">
+                  <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="ti ti-settings me-2"></i>Program Ayarlari</h5>
+                    <div class="form-check form-switch">
+                      <input class="form-check-input" type="checkbox" id="programActive" <%= typeof program !== 'undefined' && program.isActive ? 'checked' : '' %>>
+                      <label class="form-check-label" for="programActive">Aktif</label>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <div class="mb-3">
+                      <label class="form-label">Program Adi</label>
+                      <input type="text" class="form-control" id="programName" value="<%= typeof program !== 'undefined' ? program.name : 'Sadakat Programi' %>">
+                    </div>
+                    <h6 class="mt-4 mb-3">Puan Kazanma</h6>
+                    <div class="row g-3">
+                      <div class="col-6">
+                        <label class="form-label">TL Basina Puan</label>
+                        <input type="number" class="form-control" id="pointsPerPurchase" value="<%= typeof program !== 'undefined' ? program.pointsPerPurchase : 1 %>" step="0.1">
+                      </div>
+                      <div class="col-6">
+                        <label class="form-label">Kayit Puani</label>
+                        <input type="number" class="form-control" id="pointsForSignup" value="<%= typeof program !== 'undefined' ? program.pointsForSignup : 100 %>">
+                      </div>
+                      <div class="col-6">
+                        <label class="form-label">Dogum Gunu Puani</label>
+                        <input type="number" class="form-control" id="pointsForBirthday" value="<%= typeof program !== 'undefined' ? program.pointsForBirthday : 200 %>">
+                      </div>
+                      <div class="col-6">
+                        <label class="form-label">Yorum Puani</label>
+                        <input type="number" class="form-control" id="pointsForReview" value="<%= typeof program !== 'undefined' ? program.pointsForReview : 50 %>">
+                      </div>
+                      <div class="col-6">
+                        <label class="form-label">Referans Puani</label>
+                        <input type="number" class="form-control" id="pointsForReferral" value="<%= typeof program !== 'undefined' ? program.pointsForReferral : 500 %>">
+                      </div>
+                      <div class="col-6">
+                        <label class="form-label">Sosyal Paylasim Puani</label>
+                        <input type="number" class="form-control" id="pointsForSocialShare" value="<%= typeof program !== 'undefined' ? program.pointsForSocialShare : 25 %>">
+                      </div>
+                    </div>
+                    <h6 class="mt-4 mb-3">Puan Kullanma</h6>
+                    <div class="row g-3">
+                      <div class="col-4">
+                        <label class="form-label">Puan / TL</label>
+                        <input type="number" class="form-control" id="pointsPerDiscount" value="<%= typeof program !== 'undefined' ? program.pointsPerDiscount : 100 %>">
+                      </div>
+                      <div class="col-4">
+                        <label class="form-label">TL Degeri</label>
+                        <input type="number" class="form-control" id="discountValue" value="<%= typeof program !== 'undefined' ? program.discountValue : 10 %>">
+                      </div>
+                      <div class="col-4">
+                        <label class="form-label">Min. Puan</label>
+                        <input type="number" class="form-control" id="minRedeemPoints" value="<%= typeof program !== 'undefined' ? program.minRedeemPoints : 100 %>">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- VIP Seviyeleri -->
+              <div class="col-lg-6">
+                <div class="card">
+                  <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="ti ti-crown me-2"></i>VIP Seviyeleri</h5>
+                    <a href="/loyalty/members" class="btn btn-sm btn-outline-primary">
+                      <i class="ti ti-users me-1"></i>Uyeler
+                    </a>
+                  </div>
+                  <div class="card-body">
+                    <div class="row g-3" id="tiersList">
+                      <% if (typeof program !== 'undefined' && program.tiers && program.tiers.length > 0) { %>
+                        <% program.tiers.forEach(function(tier, idx) { %>
+                          <div class="col-6">
+                            <div class="tier-card" style="background: <%= tier.color %>15; border: 1px solid <%= tier.color %>;">
+                              <div class="tier-icon" style="background: <%= tier.color %>;">
+                                <i class="ti ti-crown text-white"></i>
+                              </div>
+                              <div class="tier-name" style="color: <%= tier.color %>;"><%= tier.name %></div>
+                              <div class="tier-points"><%= tier.minPoints.toLocaleString() %>+ puan</div>
+                              <ul class="tier-benefits list-unstyled mb-0">
+                                <li><i class="ti ti-check text-success me-1"></i><%= tier.pointMultiplier %>x puan</li>
+                                <% if (tier.freeShipping) { %><li><i class="ti ti-check text-success me-1"></i>Ucretsiz kargo</li><% } %>
+                                <% if (tier.exclusiveAccess) { %><li><i class="ti ti-check text-success me-1"></i>Ozel erisim</li><% } %>
+                              </ul>
+                            </div>
+                          </div>
+                        <% }); %>
+                      <% } else { %>
+                        <div class="col-6">
+                          <div class="tier-card" style="background: #CD7F3215; border: 1px solid #CD7F32;">
+                            <div class="tier-icon" style="background: #CD7F32;"><i class="ti ti-crown text-white"></i></div>
+                            <div class="tier-name" style="color: #CD7F32;">Bronze</div>
+                            <div class="tier-points">0+ puan</div>
+                          </div>
+                        </div>
+                        <div class="col-6">
+                          <div class="tier-card" style="background: #C0C0C015; border: 1px solid #C0C0C0;">
+                            <div class="tier-icon" style="background: #C0C0C0;"><i class="ti ti-crown text-white"></i></div>
+                            <div class="tier-name" style="color: #666;">Silver</div>
+                            <div class="tier-points">500+ puan</div>
+                          </div>
+                        </div>
+                        <div class="col-6">
+                          <div class="tier-card" style="background: #FFD70015; border: 1px solid #FFD700;">
+                            <div class="tier-icon" style="background: #FFD700;"><i class="ti ti-crown text-white"></i></div>
+                            <div class="tier-name" style="color: #B8860B;">Gold</div>
+                            <div class="tier-points">1,500+ puan</div>
+                          </div>
+                        </div>
+                        <div class="col-6">
+                          <div class="tier-card" style="background: #E5E4E215; border: 1px solid #999;">
+                            <div class="tier-icon" style="background: linear-gradient(135deg, #E5E4E2, #B8B8B8);"><i class="ti ti-crown text-white"></i></div>
+                            <div class="tier-name" style="color: #666;">Platinum</div>
+                            <div class="tier-points">5,000+ puan</div>
+                          </div>
+                        </div>
+                      <% } %>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <%- include('../../partials/footer') %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/assets/js/menu.js"></script>
+  <script src="/assets/js/app.js"></script>
+  <script>
+    async function saveProgram() {
+      const data = {
+        isActive: document.getElementById('programActive').checked,
+        name: document.getElementById('programName').value,
+        pointsPerPurchase: parseFloat(document.getElementById('pointsPerPurchase').value),
+        pointsForSignup: parseInt(document.getElementById('pointsForSignup').value),
+        pointsForBirthday: parseInt(document.getElementById('pointsForBirthday').value),
+        pointsForReview: parseInt(document.getElementById('pointsForReview').value),
+        pointsForReferral: parseInt(document.getElementById('pointsForReferral').value),
+        pointsForSocialShare: parseInt(document.getElementById('pointsForSocialShare').value),
+        pointsPerDiscount: parseInt(document.getElementById('pointsPerDiscount').value),
+        discountValue: parseFloat(document.getElementById('discountValue').value),
+        minRedeemPoints: parseInt(document.getElementById('minRedeemPoints').value),
+      };
+
+      try {
+        await api.put('/api/loyalty/program', data);
+        showToast('Program kaydedildi!', 'success');
+      } catch (error) {
+        showToast('Hata: ' + error.message, 'danger');
+      }
+    }
+  </script>
+</body>
+</html>
+

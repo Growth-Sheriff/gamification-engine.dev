@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en" class="light-style layout-navbar-fixed layout-menu-fixed" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Email Entegrasyonu - Gamification Engine</title>
+  <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+  <link rel="stylesheet" href="/assets/css/core.css" />
+</head>
+<body>
+  <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+      <%- include('../../partials/sidebar', { active: 'integrations' }) %>
+      <div class="layout-page">
+        <%- include('../../partials/navbar') %>
+        <div class="content-wrapper">
+          <div class="container-xxl flex-grow-1 container-p-y">
+
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <div>
+                <h4 class="mb-1"><i class="ti ti-mail me-2"></i>Email Entegrasyonu</h4>
+                <p class="text-muted mb-0">Email pazarlama araclariyla entegre edin</p>
+              </div>
+              <button class="btn btn-primary" onclick="saveIntegration()">
+                <i class="ti ti-device-floppy me-1"></i>Kaydet
+              </button>
+            </div>
+
+            <div class="row g-4">
+              <!-- Provider Secimi -->
+              <div class="col-lg-6">
+                <div class="card">
+                  <div class="card-header">
+                    <h5 class="mb-0"><i class="ti ti-plug me-2"></i>Email Servisi</h5>
+                  </div>
+                  <div class="card-body">
+                    <div class="mb-4">
+                      <label class="form-label">Servis Secin</label>
+                      <div class="row g-3">
+                        <div class="col-6">
+                          <input type="radio" class="btn-check" name="provider" id="prov_none" value="NONE" <%= typeof integration !== 'undefined' && integration.provider === 'NONE' ? 'checked' : '' %>>
+                          <label class="btn btn-outline-secondary w-100 py-3" for="prov_none">
+                            <i class="ti ti-x d-block mb-1" style="font-size: 1.5rem;"></i>
+                            Yok
+                          </label>
+                        </div>
+                        <div class="col-6">
+                          <input type="radio" class="btn-check" name="provider" id="prov_klaviyo" value="KLAVIYO" <%= typeof integration !== 'undefined' && integration.provider === 'KLAVIYO' ? 'checked' : '' %>>
+                          <label class="btn btn-outline-primary w-100 py-3" for="prov_klaviyo">
+                            <i class="ti ti-brand-klaviyo d-block mb-1" style="font-size: 1.5rem;"></i>
+                            Klaviyo
+                          </label>
+                        </div>
+                        <div class="col-6">
+                          <input type="radio" class="btn-check" name="provider" id="prov_mailchimp" value="MAILCHIMP" <%= typeof integration !== 'undefined' && integration.provider === 'MAILCHIMP' ? 'checked' : '' %>>
+                          <label class="btn btn-outline-warning w-100 py-3" for="prov_mailchimp">
+                            <i class="ti ti-brand-mailchimp d-block mb-1" style="font-size: 1.5rem;"></i>
+                            Mailchimp
+                          </label>
+                        </div>
+                        <div class="col-6">
+                          <input type="radio" class="btn-check" name="provider" id="prov_omnisend" value="OMNISEND" <%= typeof integration !== 'undefined' && integration.provider === 'OMNISEND' ? 'checked' : '' %>>
+                          <label class="btn btn-outline-info w-100 py-3" for="prov_omnisend">
+                            <i class="ti ti-mail d-block mb-1" style="font-size: 1.5rem;"></i>
+                            Omnisend
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="mb-3">
+                      <label class="form-label">API Key</label>
+                      <input type="password" class="form-control" id="apiKey" value="<%= typeof integration !== 'undefined' && integration.apiKey ? integration.apiKey : '' %>" placeholder="API anahtarinizi girin">
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label">Liste ID (opsiyonel)</label>
+                      <input type="text" class="form-control" id="listId" value="<%= typeof integration !== 'undefined' && integration.listId ? integration.listId : '' %>" placeholder="Email listesi ID'si">
+                    </div>
+
+                    <button class="btn btn-outline-primary" onclick="testConnection()">
+                      <i class="ti ti-plug-connected me-1"></i>Baglanti Test Et
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Otomatik Emailler -->
+              <div class="col-lg-6">
+                <div class="card">
+                  <div class="card-header">
+                    <h5 class="mb-0"><i class="ti ti-send me-2"></i>Otomatik Emailler</h5>
+                  </div>
+                  <div class="card-body">
+                    <div class="form-check form-switch mb-3">
+                      <input class="form-check-input" type="checkbox" id="sendWinEmail" <%= typeof integration === 'undefined' || integration.sendWinEmail ? 'checked' : '' %>>
+                      <label class="form-check-label" for="sendWinEmail">
+                        <strong>Kazanma Emaili</strong>
+                        <br><small class="text-muted">Indirim kodu kazanildiginda gonder</small>
+                      </label>
+                    </div>
+
+                    <div class="form-check form-switch mb-3">
+                      <input class="form-check-input" type="checkbox" id="sendReminderEmail" <%= typeof integration === 'undefined' || integration.sendReminderEmail ? 'checked' : '' %>>
+                      <label class="form-check-label" for="sendReminderEmail">
+                        <strong>Hatirlatma Emaili</strong>
+                        <br><small class="text-muted">Kullanilmayan kodlar icin hatirlatma</small>
+                      </label>
+                    </div>
+
+                    <div class="row g-3 ms-4 mb-3">
+                      <div class="col-6">
+                        <label class="form-label">Hatirlatma Suresi (saat)</label>
+                        <input type="number" class="form-control" id="reminderHours" value="<%= typeof integration !== 'undefined' ? integration.reminderHours : 24 %>" min="1">
+                      </div>
+                    </div>
+
+                    <div class="form-check form-switch">
+                      <input class="form-check-input" type="checkbox" id="sendExpiryEmail" <%= typeof integration === 'undefined' || integration.sendExpiryEmail ? 'checked' : '' %>>
+                      <label class="form-check-label" for="sendExpiryEmail">
+                        <strong>Son Gun Emaili</strong>
+                        <br><small class="text-muted">Kodun suresi dolmadan 1 gun once</small>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Email Sablonlari -->
+                <div class="card mt-4">
+                  <div class="card-header">
+                    <h5 class="mb-0"><i class="ti ti-template me-2"></i>Email Sablonlari</h5>
+                  </div>
+                  <div class="card-body">
+                    <div class="list-group">
+                      <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                          <i class="ti ti-trophy text-success me-2"></i>Kazanma Emaili
+                        </div>
+                        <span class="badge bg-primary">Varsayilan</span>
+                      </a>
+                      <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                          <i class="ti ti-bell text-warning me-2"></i>Hatirlatma Emaili
+                        </div>
+                        <span class="badge bg-primary">Varsayilan</span>
+                      </a>
+                      <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                          <i class="ti ti-clock text-danger me-2"></i>Son Gun Emaili
+                        </div>
+                        <span class="badge bg-primary">Varsayilan</span>
+                      </a>
+                    </div>
+                    <small class="text-muted d-block mt-2">
+                      <i class="ti ti-info-circle me-1"></i>Ozel sablonlar yaklnda...
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <%- include('../../partials/footer') %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/assets/js/menu.js"></script>
+  <script src="/assets/js/app.js"></script>
+  <script>
+    async function saveIntegration() {
+      const data = {
+        provider: document.querySelector('input[name="provider"]:checked')?.value || 'NONE',
+        apiKey: document.getElementById('apiKey').value || null,
+        listId: document.getElementById('listId').value || null,
+        sendWinEmail: document.getElementById('sendWinEmail').checked,
+        sendReminderEmail: document.getElementById('sendReminderEmail').checked,
+        sendExpiryEmail: document.getElementById('sendExpiryEmail').checked,
+        reminderHours: parseInt(document.getElementById('reminderHours').value) || 24,
+      };
+
+      try {
+        await api.put('/api/integrations/email', data);
+        showToast('Entegrasyon kaydedildi!', 'success');
+      } catch (error) {
+        showToast('Hata: ' + error.message, 'danger');
+      }
+    }
+
+    async function testConnection() {
+      const provider = document.querySelector('input[name="provider"]:checked')?.value;
+      const apiKey = document.getElementById('apiKey').value;
+
+      if (provider === 'NONE' || !apiKey) {
+        showToast('Lutfen servis ve API key girin', 'warning');
+        return;
+      }
+
+      try {
+        await api.post('/api/integrations/email/test', { provider, apiKey });
+        showToast('Baglanti basarili!', 'success');
+      } catch (error) {
+        showToast('Baglanti hatasi: ' + error.message, 'danger');
+      }
+    }
+  </script>
+</body>
+</html>
+

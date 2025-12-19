@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en" class="light-style layout-navbar-fixed layout-menu-fixed" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= typeof test !== 'undefined' && test ? 'A/B Test Duzenle' : 'Yeni A/B Test' %> - Gamification Engine</title>
+  <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+  <link rel="stylesheet" href="/assets/css/core.css" />
+</head>
+<body>
+  <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+      <%- include('../../partials/sidebar', { active: 'ab-tests' }) %>
+      <div class="layout-page">
+        <%- include('../../partials/navbar') %>
+        <div class="content-wrapper">
+          <div class="container-xxl flex-grow-1 container-p-y">
+
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <div>
+                <nav aria-label="breadcrumb">
+                  <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="/ab-tests">A/B Testleri</a></li>
+                    <li class="breadcrumb-item active"><%= typeof test !== 'undefined' && test ? test.name : 'Yeni Test' %></li>
+                  </ol>
+                </nav>
+                <h4 class="mb-0 mt-2"><i class="ti ti-ab me-2"></i><%= typeof test !== 'undefined' && test ? 'A/B Test Duzenle' : 'Yeni A/B Test' %></h4>
+              </div>
+              <div class="d-flex gap-2">
+                <a href="/ab-tests" class="btn btn-outline-secondary">Geri</a>
+                <button class="btn btn-primary" onclick="saveTest()">
+                  <i class="ti ti-device-floppy me-1"></i>Kaydet
+                </button>
+              </div>
+            </div>
+
+            <div class="row g-4">
+              <!-- Sol Panel -->
+              <div class="col-lg-8">
+                <div class="card mb-4">
+                  <div class="card-header">
+                    <h5 class="mb-0"><i class="ti ti-settings me-2"></i>Test Ayarlari</h5>
+                  </div>
+                  <div class="card-body">
+                    <div class="row g-3">
+                      <div class="col-md-8">
+                        <label class="form-label">Test Adi</label>
+                        <input type="text" class="form-control" id="testName" value="<%= typeof test !== 'undefined' && test ? test.name : '' %>" required>
+                      </div>
+                      <div class="col-md-4">
+                        <label class="form-label">Durum</label>
+                        <div class="form-check form-switch mt-2">
+                          <input class="form-check-input" type="checkbox" id="testActive" <%= typeof test !== 'undefined' && test && test.isActive ? 'checked' : '' %>>
+                          <label class="form-check-label" for="testActive">Aktif</label>
+                        </div>
+                      </div>
+                      <div class="col-12">
+                        <label class="form-label">Aciklama</label>
+                        <textarea class="form-control" id="testDescription" rows="2"><%= typeof test !== 'undefined' && test ? (test.description || '') : '' %></textarea>
+                      </div>
+                      <div class="col-md-6">
+                        <label class="form-label">Oyun</label>
+                        <select class="form-select" id="testGame">
+                          <option value="">Sec...</option>
+                          <% if (typeof games !== 'undefined' && games.length > 0) { %>
+                            <% games.forEach(function(game) { %>
+                              <option value="<%= game.id %>" <%= typeof test !== 'undefined' && test && test.gameId === game.id ? 'selected' : '' %>>
+                                <%= game.name %> (<%= game.type %>)
+                              </option>
+                            <% }); %>
+                          <% } %>
+                        </select>
+                      </div>
+                      <div class="col-md-6">
+                        <label class="form-label">Trafik Bolunmesi (%)</label>
+                        <input type="range" class="form-range" id="trafficSplit" min="10" max="90" step="10" value="<%= typeof test !== 'undefined' && test ? test.trafficSplit : 50 %>" oninput="updateSplitLabel()">
+                        <div class="d-flex justify-content-between">
+                          <small>Control: <span id="controlSplit">50</span>%</small>
+                          <small>Variant: <span id="variantSplit">50</span>%</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Varyantlar -->
+                <div class="card">
+                  <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="ti ti-layout-grid me-2"></i>Varyantlar</h5>
+                    <button class="btn btn-sm btn-primary" onclick="addVariant()">
+                      <i class="ti ti-plus me-1"></i>Varyant Ekle
+                    </button>
+                  </div>
+                  <div class="card-body" id="variantsList">
+                    <% if (typeof test !== 'undefined' && test && test.variants && test.variants.length > 0) { %>
+                      <% test.variants.forEach(function(variant, idx) { %>
+                        <div class="variant-item border rounded p-3 mb-3" data-id="<%= variant.id %>">
+                          <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="form-check">
+                              <input class="form-check-input" type="checkbox" <%= variant.isControl ? 'checked' : '' %> onchange="setControl(this)">
+                              <label class="form-check-label">Control</label>
+                            </div>
+                            <button class="btn btn-sm btn-outline-danger" onclick="removeVariant(this)">
+                              <i class="ti ti-trash"></i>
+                            </button>
+                          </div>
+                          <div class="mb-3">
+                            <label class="form-label">Varyant Adi</label>
+                            <input type="text" class="form-control variant-name" value="<%= variant.name %>">
+                          </div>
+                          <div class="row g-2 text-center">
+                            <div class="col-3">
+                              <div class="border rounded p-2 bg-light">
+                                <div class="fw-bold"><%= variant.impressions %></div>
+                                <small class="text-muted">Gosterim</small>
+                              </div>
+                            </div>
+                            <div class="col-3">
+                              <div class="border rounded p-2 bg-light">
+                                <div class="fw-bold"><%= variant.plays %></div>
+                                <small class="text-muted">Oyun</small>
+                              </div>
+                            </div>
+                            <div class="col-3">
+                              <div class="border rounded p-2 bg-light">
+                                <div class="fw-bold"><%= variant.conversions %></div>
+                                <small class="text-muted">Donusum</small>
+                              </div>
+                            </div>
+                            <div class="col-3">
+                              <div class="border rounded p-2 bg-light">
+                                <% const cvr = variant.impressions > 0 ? ((variant.conversions / variant.impressions) * 100).toFixed(1) : 0; %>
+                                <div class="fw-bold"><%= cvr %>%</div>
+                                <small class="text-muted">CVR</small>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      <% }); %>
+                    <% } else { %>
+                      <div class="variant-item border rounded p-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" checked onchange="setControl(this)">
+                            <label class="form-check-label">Control</label>
+                          </div>
+                          <button class="btn btn-sm btn-outline-danger" onclick="removeVariant(this)" disabled>
+                            <i class="ti ti-trash"></i>
+                          </button>
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label">Varyant Adi</label>
+                          <input type="text" class="form-control variant-name" value="Control">
+                        </div>
+                      </div>
+                      <div class="variant-item border rounded p-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" onchange="setControl(this)">
+                            <label class="form-check-label">Control</label>
+                          </div>
+                          <button class="btn btn-sm btn-outline-danger" onclick="removeVariant(this)">
+                            <i class="ti ti-trash"></i>
+                          </button>
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label">Varyant Adi</label>
+                          <input type="text" class="form-control variant-name" value="Variant A">
+                        </div>
+                      </div>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sag Panel -->
+              <div class="col-lg-4">
+                <div class="card">
+                  <div class="card-header">
+                    <h5 class="mb-0"><i class="ti ti-info-circle me-2"></i>A/B Test Nedir?</h5>
+                  </div>
+                  <div class="card-body">
+                    <p class="text-muted small">A/B testi, iki veya daha fazla varyanti karsilastirarak en iyi performansi gosteren tasarimi bulmanizi saglar.</p>
+                    <ul class="small text-muted">
+                      <li>Control: Mevcut tasarim</li>
+                      <li>Variant: Test edilecek yeni tasarim</li>
+                      <li>Trafik esit sekilde bolunur</li>
+                      <li>Sonuclar istatistiksel olarak analiz edilir</li>
+                    </ul>
+                    <div class="alert alert-soft-warning mb-0">
+                      <i class="ti ti-alert-triangle me-1"></i>
+                      <small>Test en az 1000 gosterim toplamadan sonuc cikarmayin</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <%- include('../../partials/footer') %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/assets/js/menu.js"></script>
+  <script src="/assets/js/app.js"></script>
+  <script>
+    const testId = '<%= typeof test !== "undefined" && test ? test.id : "" %>';
+
+    function updateSplitLabel() {
+      const val = document.getElementById('trafficSplit').value;
+      document.getElementById('controlSplit').textContent = val;
+      document.getElementById('variantSplit').textContent = 100 - val;
+    }
+    updateSplitLabel();
+
+    function setControl(checkbox) {
+      if (checkbox.checked) {
+        document.querySelectorAll('.variant-item input[type="checkbox"]').forEach(cb => cb.checked = false);
+        checkbox.checked = true;
+      }
+    }
+
+    function addVariant() {
+      const count = document.querySelectorAll('.variant-item').length;
+      const html = `
+        <div class="variant-item border rounded p-3 mb-3">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" onchange="setControl(this)">
+              <label class="form-check-label">Control</label>
+            </div>
+            <button class="btn btn-sm btn-outline-danger" onclick="removeVariant(this)">
+              <i class="ti ti-trash"></i>
+            </button>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Varyant Adi</label>
+            <input type="text" class="form-control variant-name" value="Variant ${String.fromCharCode(65 + count - 1)}">
+          </div>
+        </div>`;
+      document.getElementById('variantsList').insertAdjacentHTML('beforeend', html);
+    }
+
+    function removeVariant(btn) {
+      if (document.querySelectorAll('.variant-item').length <= 2) {
+        showToast('En az 2 varyant olmali!', 'warning');
+        return;
+      }
+      btn.closest('.variant-item').remove();
+    }
+
+    async function saveTest() {
+      const variants = [];
+      document.querySelectorAll('.variant-item').forEach(item => {
+        variants.push({
+          id: item.dataset.id || null,
+          name: item.querySelector('.variant-name').value,
+          isControl: item.querySelector('input[type="checkbox"]').checked,
+        });
+      });
+
+      const data = {
+        name: document.getElementById('testName').value,
+        description: document.getElementById('testDescription').value,
+        isActive: document.getElementById('testActive').checked,
+        gameId: document.getElementById('testGame').value || null,
+        trafficSplit: parseInt(document.getElementById('trafficSplit').value),
+        variants,
+      };
+
+      if (!data.name) {
+        showToast('Test adi zorunlu!', 'warning');
+        return;
+      }
+
+      try {
+        if (testId) {
+          await api.put(`/api/ab-tests/${testId}`, data);
+        } else {
+          await api.post('/api/ab-tests', data);
+        }
+        showToast('Test kaydedildi!', 'success');
+        setTimeout(() => window.location.href = '/ab-tests', 1000);
+      } catch (error) {
+        showToast('Hata: ' + error.message, 'danger');
+      }
+    }
+  </script>
+</body>
+</html>
+

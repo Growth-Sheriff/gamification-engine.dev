@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en" class="light-style layout-navbar-fixed layout-menu-fixed" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arkadas Getir - Gamification Engine</title>
+  <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+  <link rel="stylesheet" href="/assets/css/core.css" />
+</head>
+<body>
+  <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+      <%- include('../../partials/sidebar', { active: 'referral' }) %>
+      <div class="layout-page">
+        <%- include('../../partials/navbar') %>
+        <div class="content-wrapper">
+          <div class="container-xxl flex-grow-1 container-p-y">
+
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <div>
+                <h4 class="mb-1"><i class="ti ti-users-plus me-2"></i>Arkadas Getir Programi</h4>
+                <p class="text-muted mb-0">Mevcut musterileriniz yeni musteriler getirsin</p>
+              </div>
+              <button class="btn btn-primary" onclick="saveProgram()">
+                <i class="ti ti-device-floppy me-1"></i>Kaydet
+              </button>
+            </div>
+
+            <!-- Stats -->
+            <div class="row g-4 mb-4">
+              <div class="col-sm-6 col-xl-3">
+                <div class="card stats-card">
+                  <div class="stats-icon" style="background: rgba(115, 103, 240, 0.12);">
+                    <i class="ti ti-link" style="color: #7367f0;"></i>
+                  </div>
+                  <div class="stats-value"><%= typeof stats !== 'undefined' ? stats.totalReferrals : 0 %></div>
+                  <div class="stats-label">Toplam Davet</div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-xl-3">
+                <div class="card stats-card">
+                  <div class="stats-icon" style="background: rgba(40, 199, 111, 0.12);">
+                    <i class="ti ti-check" style="color: #28c76f;"></i>
+                  </div>
+                  <div class="stats-value"><%= typeof stats !== 'undefined' ? stats.completedReferrals : 0 %></div>
+                  <div class="stats-label">Tamamlanan</div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-xl-3">
+                <div class="card stats-card">
+                  <div class="stats-icon" style="background: rgba(255, 159, 67, 0.12);">
+                    <i class="ti ti-clock" style="color: #ff9f43;"></i>
+                  </div>
+                  <div class="stats-value"><%= typeof stats !== 'undefined' ? stats.pendingReferrals : 0 %></div>
+                  <div class="stats-label">Bekleyen</div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-xl-3">
+                <div class="card stats-card">
+                  <div class="stats-icon" style="background: rgba(0, 207, 232, 0.12);">
+                    <i class="ti ti-percentage" style="color: #00cfe8;"></i>
+                  </div>
+                  <div class="stats-value"><%= typeof stats !== 'undefined' ? stats.conversionRate : 0 %>%</div>
+                  <div class="stats-label">Donusum Orani</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-4">
+              <!-- Ayarlar -->
+              <div class="col-lg-6">
+                <div class="card">
+                  <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="ti ti-settings me-2"></i>Program Ayarlari</h5>
+                    <div class="form-check form-switch">
+                      <input class="form-check-input" type="checkbox" id="programActive" <%= typeof program !== 'undefined' && program.isActive ? 'checked' : '' %>>
+                      <label class="form-check-label" for="programActive">Aktif</label>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <h6 class="mb-3">Davet Eden Odulu</h6>
+                    <div class="row g-3 mb-4">
+                      <div class="col-6">
+                        <label class="form-label">Odul Tipi</label>
+                        <select class="form-select" id="referrerReward">
+                          <option value="DISCOUNT" <%= typeof program !== 'undefined' && program.referrerReward === 'DISCOUNT' ? 'selected' : '' %>>Indirim (TL)</option>
+                          <option value="POINTS" <%= typeof program !== 'undefined' && program.referrerReward === 'POINTS' ? 'selected' : '' %>>Puan</option>
+                        </select>
+                      </div>
+                      <div class="col-6">
+                        <label class="form-label">Deger</label>
+                        <input type="number" class="form-control" id="referrerValue" value="<%= typeof program !== 'undefined' ? program.referrerValue : 10 %>">
+                      </div>
+                    </div>
+
+                    <h6 class="mb-3">Davet Edilen Odulu</h6>
+                    <div class="row g-3 mb-4">
+                      <div class="col-6">
+                        <label class="form-label">Odul Tipi</label>
+                        <select class="form-select" id="refereeReward">
+                          <option value="DISCOUNT" <%= typeof program !== 'undefined' && program.refereeReward === 'DISCOUNT' ? 'selected' : '' %>>Indirim (TL)</option>
+                          <option value="POINTS" <%= typeof program !== 'undefined' && program.refereeReward === 'POINTS' ? 'selected' : '' %>>Puan</option>
+                        </select>
+                      </div>
+                      <div class="col-6">
+                        <label class="form-label">Deger</label>
+                        <input type="number" class="form-control" id="refereeValue" value="<%= typeof program !== 'undefined' ? program.refereeValue : 10 %>">
+                      </div>
+                    </div>
+
+                    <h6 class="mb-3">Kosullar</h6>
+                    <div class="form-check mb-2">
+                      <input class="form-check-input" type="checkbox" id="requirePurchase" <%= typeof program === 'undefined' || program.requirePurchase ? 'checked' : '' %>>
+                      <label class="form-check-label" for="requirePurchase">Satin alma gerekli</label>
+                    </div>
+                    <div class="row g-3">
+                      <div class="col-6">
+                        <label class="form-label">Min. Siparis Tutari</label>
+                        <input type="number" class="form-control" id="minPurchaseAmount" value="<%= typeof program !== 'undefined' && program.minPurchaseAmount ? program.minPurchaseAmount : '' %>" placeholder="Bos = Limit yok">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Son Davetler -->
+              <div class="col-lg-6">
+                <div class="card h-100">
+                  <div class="card-header">
+                    <h5 class="mb-0"><i class="ti ti-history me-2"></i>Son Davetler</h5>
+                  </div>
+                  <div class="card-body p-0">
+                    <div class="table-responsive">
+                      <table class="table table-modern mb-0">
+                        <thead>
+                          <tr>
+                            <th>Kod</th>
+                            <th>Durum</th>
+                            <th>Tarih</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <% if (typeof recentReferrals !== 'undefined' && recentReferrals.length > 0) { %>
+                            <% recentReferrals.forEach(function(ref) { %>
+                              <tr>
+                                <td><code><%= ref.code %></code></td>
+                                <td>
+                                  <span class="badge <%= ref.status === 'COMPLETED' ? 'bg-success' : ref.status === 'PENDING' ? 'bg-warning' : 'bg-secondary' %>">
+                                    <%= ref.status === 'COMPLETED' ? 'Tamamlandi' : ref.status === 'PENDING' ? 'Bekliyor' : 'Suresi Doldu' %>
+                                  </span>
+                                </td>
+                                <td><small><%= new Date(ref.createdAt).toLocaleDateString('tr-TR') %></small></td>
+                              </tr>
+                            <% }); %>
+                          <% } else { %>
+                            <tr>
+                              <td colspan="3" class="text-center py-4 text-muted">Henuz davet yok</td>
+                            </tr>
+                          <% } %>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Nasil Calisir -->
+            <div class="card mt-4">
+              <div class="card-header">
+                <h5 class="mb-0"><i class="ti ti-info-circle me-2"></i>Nasil Calisir?</h5>
+              </div>
+              <div class="card-body">
+                <div class="row text-center">
+                  <div class="col-md-3">
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem;">1</div>
+                    <h6>Kod Paylas</h6>
+                    <p class="text-muted small mb-0">Musteri benzersiz referans kodunu alir</p>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem;">2</div>
+                    <h6>Arkadas Tiklar</h6>
+                    <p class="text-muted small mb-0">Arkadas linke tiklar ve siteye gelir</p>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem;">3</div>
+                    <h6>Satin Alim</h6>
+                    <p class="text-muted small mb-0">Arkadas ilk siparisini verir</p>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem;">✓</div>
+                    <h6>Odul!</h6>
+                    <p class="text-muted small mb-0">Her iki taraf da odulunu alir</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <%- include('../../partials/footer') %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/assets/js/menu.js"></script>
+  <script src="/assets/js/app.js"></script>
+  <script>
+    async function saveProgram() {
+      const data = {
+        isActive: document.getElementById('programActive').checked,
+        referrerReward: document.getElementById('referrerReward').value,
+        referrerValue: parseFloat(document.getElementById('referrerValue').value),
+        refereeReward: document.getElementById('refereeReward').value,
+        refereeValue: parseFloat(document.getElementById('refereeValue').value),
+        requirePurchase: document.getElementById('requirePurchase').checked,
+        minPurchaseAmount: parseFloat(document.getElementById('minPurchaseAmount').value) || null,
+      };
+
+      try {
+        await api.put('/api/referral/program', data);
+        showToast('Program kaydedildi!', 'success');
+      } catch (error) {
+        showToast('Hata: ' + error.message, 'danger');
+      }
+    }
+  </script>
+</body>
+</html>
+
