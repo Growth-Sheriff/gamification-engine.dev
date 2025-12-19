@@ -19,6 +19,68 @@ router.use(requireApiAuth);
 // GAMES API
 // ═══════════════════════════════════════════════════════════════════════════
 
+// Game create schema
+const createGameSchema = z.object({
+  name: z.string().min(1),
+  type: z.enum(['SPIN_WHEEL', 'SCRATCH_CARD', 'POPUP']),
+  isActive: z.boolean().optional(),
+  trigger: z.enum(['PAGE_LOAD', 'TIME_ON_PAGE', 'SCROLL_DEPTH', 'EXIT_INTENT']).optional(),
+  triggerValue: z.number().min(0).optional(),
+  showOnPages: z.array(z.string()).optional(),
+  config: z.record(z.unknown()).optional(),
+  segments: z.array(z.object({
+    label: z.string(),
+    type: z.enum(['PERCENTAGE', 'FIXED_AMOUNT', 'FREE_SHIPPING', 'NO_PRIZE']),
+    value: z.number(),
+    probability: z.number(),
+    color: z.string().optional(),
+  })).optional(),
+});
+
+/**
+ * Create game
+ * POST /api/games
+ */
+router.post('/games', async (req: Request, res: Response) => {
+  try {
+    const shopId = req.shop!.id;
+    const parsed = createGameSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+      res.status(400).json({ success: false, error: 'Invalid data', details: parsed.error.flatten() });
+      return;
+    }
+
+    const { segments, ...gameData } = parsed.data;
+
+    const game = await prisma.game.create({
+      data: {
+        shopId,
+        ...gameData,
+        config: gameData.config as Prisma.InputJsonValue || {},
+        segments: segments ? {
+          create: segments.map((seg, index) => ({
+            label: seg.label,
+            type: seg.type,
+            value: seg.value,
+            probability: seg.probability,
+            color: seg.color || '#7367f0',
+            order: index,
+          })),
+        } : undefined,
+      },
+      include: {
+        segments: { orderBy: { order: 'asc' } },
+      },
+    });
+
+    res.json({ success: true, data: game });
+  } catch (error) {
+    console.error('Create game error:', error);
+    res.status(500).json({ success: false, error: 'Failed to create game' });
+  }
+});
+
 /**
  * Get all games
  * GET /api/games

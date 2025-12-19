@@ -21,6 +21,10 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const shopId = req.shop!.id;
 
+    // Get last 7 days for chart
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
     // Get statistics
     const [
       totalGames,
@@ -30,6 +34,7 @@ router.get('/', async (req: Request, res: Response) => {
       totalDiscounts,
       usedDiscounts,
       recentPlays,
+      chartAnalytics,
     ] = await Promise.all([
       prisma.game.count({ where: { shopId } }),
       prisma.game.count({ where: { shopId, isActive: true } }),
@@ -47,10 +52,21 @@ router.get('/', async (req: Request, res: Response) => {
         orderBy: { playedAt: 'desc' },
         take: 10,
       }),
+      prisma.analytics.findMany({
+        where: { shopId, date: { gte: sevenDaysAgo } },
+        orderBy: { date: 'asc' },
+      }),
     ]);
 
     // Calculate conversion rate
     const conversionRate = totalPlays > 0 ? ((usedDiscounts / totalPlays) * 100).toFixed(1) : '0';
+
+    // Chart data
+    const chartData = {
+      labels: chartAnalytics.map(a => a.date.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short' })),
+      plays: chartAnalytics.map(a => a.plays),
+      wins: chartAnalytics.map(a => a.wins),
+    };
 
     // Get games for sidebar
     const games = await prisma.game.findMany({
@@ -73,6 +89,7 @@ router.get('/', async (req: Request, res: Response) => {
       },
       recentPlays,
       games,
+      chartData,
     });
   } catch (error) {
     console.error('Dashboard error:', error);
@@ -376,10 +393,10 @@ router.get('/discounts/codes', async (req: Request, res: Response) => {
   try {
     const shopId = req.shop!.id;
     const page = parseInt(req.query.page as string) || 1;
-    const limit = 20;
+    const limit = 50;
     const skip = (page - 1) * limit;
 
-    const [discounts, total] = await Promise.all([
+    const [discounts, total, usedCount, expiredCount] = await Promise.all([
       prisma.discount.findMany({
         where: { shopId },
         include: {
@@ -391,14 +408,23 @@ router.get('/discounts/codes', async (req: Request, res: Response) => {
         take: limit,
       }),
       prisma.discount.count({ where: { shopId } }),
+      prisma.discount.count({ where: { shopId, status: 'USED' } }),
+      prisma.discount.count({ where: { shopId, status: 'EXPIRED' } }),
     ]);
 
+    const pendingCount = total - usedCount - expiredCount;
     const totalPages = Math.ceil(total / limit);
 
     res.render('pages/discounts/codes', {
       title: 'İndirim Kodları',
       shop: req.shop,
       discounts,
+      stats: {
+        totalCodes: total,
+        usedCodes: usedCount,
+        pendingCodes: pendingCount,
+        expiredCodes: expiredCount,
+      },
       pagination: {
         page,
         totalPages,
@@ -449,11 +475,63 @@ router.get('/analytics', async (req: Request, res: Response) => {
       { views: 0, plays: 0, wins: 0, claims: 0, redemptions: 0, revenue: 0 }
     );
 
+    // Chart data
+    const chartData = {
+      labels: analytics.map(a => a.date.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short' })),
+      plays: analytics.map(a => a.plays),
+      wins: analytics.map(a => a.wins),
+    };
+
+    // Game stats
+    const gameStats = await prisma.game.findMany({
+      where: { shopId },
+      include: {
+        _count: { select: { plays: true } },
+        plays: {
+          where: { result: 'WIN' },
+          select: { id: true },
+        },
+      },
+    });
+
+    const gameStatsFormatted = await Promise.all(gameStats.map(async g => {
+      const plays = g._count.plays;
+      const wins = g.plays.length;
+      const used = await prisma.discount.count({
+        where: {
+          shopId,
+          status: 'USED',
+          play: { gameId: g.id },
+        },
+      });
+      return {
+        name: g.name,
+        type: g.type,
+        plays,
+        wins,
+        winRate: plays > 0 ? Math.round((wins / plays) * 100) : 0,
+        used,
+        conversionRate: wins > 0 ? Math.round((used / wins) * 100) : 0,
+      };
+    }));
+
+    // Stats summary
+    const stats = {
+      totalPlays: totals.plays,
+      totalWins: totals.wins,
+      conversionRate: totals.plays > 0 ? Math.round((totals.redemptions / totals.plays) * 100) : 0,
+      usedDiscounts: totals.redemptions,
+      totalRevenue: totals.revenue,
+    };
+
     res.render('pages/analytics', {
       title: 'Analitik',
       shop: req.shop,
       analytics,
       totals,
+      chartData,
+      gameStats: gameStatsFormatted,
+      stats,
     });
   } catch (error) {
     console.error('Analytics page error:', error);
