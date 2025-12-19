@@ -1,0 +1,165 @@
+<%- include('../layouts/admin', { body: `
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="mb-1">
+      <i class="ti ti-chart-bar me-2"></i>
+      Analitik
+    </h4>
+    <p class="text-muted mb-0">Son 30 günlük performans</p>
+  </div>
+  <div class="d-flex gap-2">
+    <select class="form-select" style="width: auto;">
+      <option value="30">Son 30 Gün</option>
+      <option value="7">Son 7 Gün</option>
+      <option value="90">Son 90 Gün</option>
+    </select>
+  </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-4 mb-4">
+  <div class="col-sm-6 col-xl-2">
+    <div class="card stats-card">
+      <div class="stats-icon" style="background: rgba(115, 103, 240, 0.12);">
+        <i class="ti ti-eye" style="color: #7367f0;"></i>
+      </div>
+      <div class="stats-value">${ typeof totals !== 'undefined' ? totals.views : 0 }</div>
+      <div class="stats-label">Görüntüleme</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-2">
+    <div class="card stats-card">
+      <div class="stats-icon" style="background: rgba(0, 207, 232, 0.12);">
+        <i class="ti ti-rotate-clockwise" style="color: #00cfe8;"></i>
+      </div>
+      <div class="stats-value">${ typeof totals !== 'undefined' ? totals.plays : 0 }</div>
+      <div class="stats-label">Oyun</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-2">
+    <div class="card stats-card">
+      <div class="stats-icon" style="background: rgba(40, 199, 111, 0.12);">
+        <i class="ti ti-trophy" style="color: #28c76f;"></i>
+      </div>
+      <div class="stats-value">${ typeof totals !== 'undefined' ? totals.wins : 0 }</div>
+      <div class="stats-label">Kazanan</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-2">
+    <div class="card stats-card">
+      <div class="stats-icon" style="background: rgba(255, 159, 67, 0.12);">
+        <i class="ti ti-tag" style="color: #ff9f43;"></i>
+      </div>
+      <div class="stats-value">${ typeof totals !== 'undefined' ? totals.claims : 0 }</div>
+      <div class="stats-label">Kod Alındı</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-2">
+    <div class="card stats-card">
+      <div class="stats-icon" style="background: rgba(234, 84, 85, 0.12);">
+        <i class="ti ti-receipt" style="color: #ea5455;"></i>
+      </div>
+      <div class="stats-value">${ typeof totals !== 'undefined' ? totals.redemptions : 0 }</div>
+      <div class="stats-label">Kullanıldı</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-2">
+    <div class="card stats-card">
+      <div class="stats-icon" style="background: rgba(40, 199, 111, 0.12);">
+        <i class="ti ti-currency-dollar" style="color: #28c76f;"></i>
+      </div>
+      <div class="stats-value">$${ typeof totals !== 'undefined' ? totals.revenue.toFixed(2) : '0.00' }</div>
+      <div class="stats-label">Gelir</div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart -->
+<div class="row g-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Günlük Performans</h5>
+      </div>
+      <div class="card-body">
+        <canvas id="performanceChart" height="100"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const analytics = ${ typeof analytics !== 'undefined' ? JSON.stringify(analytics) : '[]' };
+
+  const labels = analytics.map(a => new Date(a.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }));
+  const plays = analytics.map(a => a.plays);
+  const wins = analytics.map(a => a.wins);
+  const redemptions = analytics.map(a => a.redemptions);
+
+  const ctx = document.getElementById('performanceChart').getContext('2d');
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Oyunlar',
+          data: plays,
+          borderColor: '#7367f0',
+          backgroundColor: 'rgba(115, 103, 240, 0.1)',
+          fill: true,
+          tension: 0.4
+        },
+        {
+          label: 'Kazananlar',
+          data: wins,
+          borderColor: '#28c76f',
+          backgroundColor: 'rgba(40, 199, 111, 0.1)',
+          fill: true,
+          tension: 0.4
+        },
+        {
+          label: 'Kullanılan Kodlar',
+          data: redemptions,
+          borderColor: '#ff9f43',
+          backgroundColor: 'rgba(255, 159, 67, 0.1)',
+          fill: true,
+          tension: 0.4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          position: 'top',
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: 'rgba(0, 0, 0, 0.05)'
+          }
+        },
+        x: {
+          grid: {
+            display: false
+          }
+        }
+      }
+    }
+  });
+});
+</script>
+
+`, active: 'analytics' }) %>
+

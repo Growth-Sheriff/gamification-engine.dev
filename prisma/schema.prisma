@@ -1,0 +1,339 @@
+// Gamification Engine - Database Schema
+// Shopify App for Spin Wheel, Scratch Card, Popup Games
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SHOP (Tenant) - Her mağaza bir tenant
+// ═══════════════════════════════════════════════════════════════════════════
+model Shop {
+  id            String    @id @default(cuid())
+  domain        String    @unique                    // xxx.myshopify.com
+  accessToken   String
+  name          String?
+  email         String?
+  isActive      Boolean   @default(true)
+
+  // İlişkiler
+  games         Game[]
+  rules         DiscountRule[]
+  discounts     Discount[]
+  visitors      Visitor[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([domain])
+  @@map("shops")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GAME (Oyunlar: Spin Wheel, Scratch Card, Popup)
+// ═══════════════════════════════════════════════════════════════════════════
+model Game {
+  id            String      @id @default(cuid())
+  shopId        String
+  shop          Shop        @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  type          GameType                              // SPIN_WHEEL, SCRATCH_CARD, POPUP
+  name          String
+  isActive      Boolean     @default(false)
+
+  // Görünüm ayarları (JSON)
+  // { title, subtitle, buttonText, colors, styles... }
+  config        Json        @default("{}")
+
+  // Zamanlama
+  startDate     DateTime?
+  endDate       DateTime?
+
+  // Tetikleyici
+  trigger       TriggerType @default(TIME_ON_PAGE)
+  triggerValue  Int         @default(3000)            // ms veya % (scroll için)
+
+  // Hedefleme (boş = tüm sayfalar)
+  showOnPages   String[]    @default([])
+
+  // İlişkiler
+  segments      GameSegment[]
+  rules         DiscountRule[]
+  plays         Play[]
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([shopId, isActive])
+  @@map("games")
+}
+
+enum GameType {
+  SPIN_WHEEL
+  SCRATCH_CARD
+  POPUP
+}
+
+enum TriggerType {
+  PAGE_LOAD
+  TIME_ON_PAGE
+  SCROLL_DEPTH
+  EXIT_INTENT
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GAME SEGMENT (Çark dilimleri, kazı kazan alanları, popup seçenekleri)
+// ═══════════════════════════════════════════════════════════════════════════
+model GameSegment {
+  id            String    @id @default(cuid())
+  gameId        String
+  game          Game      @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  label         String                                // "10% OFF", "Şanssız", "Free Shipping"
+  type          PrizeType                             // PERCENTAGE, FIXED, FREE_SHIPPING, NO_PRIZE
+  value         Float     @default(0)                 // 10, 5, 0
+  probability   Float                                 // 0.25 = %25 olasılık
+  color         String    @default("#7367F0")
+  icon          String?                               // İkon (opsiyonel)
+
+  order         Int       @default(0)                 // Sıralama
+
+  @@index([gameId])
+  @@map("game_segments")
+}
+
+enum PrizeType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  FREE_SHIPPING
+  NO_PRIZE
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DISCOUNT RULE (İndirim Kuralları - Detaylı Kontrol)
+// ═══════════════════════════════════════════════════════════════════════════
+model DiscountRule {
+  id            String    @id @default(cuid())
+  shopId        String
+  shop          Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  gameId        String?
+  game          Game?     @relation(fields: [gameId], references: [id], onDelete: SetNull)
+
+  name          String
+  isActive      Boolean   @default(true)
+
+  // ═══ KULLANICI KISITLAMALARI ═══
+  maxPlaysPerVisitor      Int       @default(1)       // Ziyaretçi başına maks oyun
+  maxWinsPerVisitor       Int       @default(1)       // Ziyaretçi başına maks kazanç
+  cooldownHours           Int       @default(24)      // Tekrar oynama bekleme (saat)
+  requireEmail            Boolean   @default(false)   // Email zorunlu mu?
+
+  // ═══ ÜRÜN KURALLARI ═══
+  appliesTo               AppliesTo @default(ALL)
+  productIds              String[]  @default([])      // Shopify product GIDs
+  collectionIds           String[]  @default([])      // Shopify collection GIDs
+  excludeProductIds       String[]  @default([])      // Hariç tutulan ürünler
+  excludeSaleItems        Boolean   @default(false)   // İndirimli ürünler hariç
+
+  // ═══ KULLANIM KURALLARI ═══
+  maxTotalRedemptions     Int?                        // Toplam kullanım limiti (null = sınırsız)
+  maxRedemptionsPerCode   Int       @default(1)       // Kod başına kullanım
+  minOrderAmount          Float?                      // Minimum sepet tutarı
+  maxDiscountAmount       Float?                      // Maksimum indirim tutarı
+
+  // ═══ KOMBİNASYON KURALLARI ═══
+  combineWithProductDiscount  Boolean @default(false)
+  combineWithOrderDiscount    Boolean @default(false)
+  combineWithShipping         Boolean @default(true)
+
+  // ═══ GEÇERLİLİK ═══
+  validityDays            Int       @default(7)       // Kodun geçerlilik süresi (gün)
+
+  // İlişkiler
+  discounts     Discount[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([shopId, isActive])
+  @@map("discount_rules")
+}
+
+enum AppliesTo {
+  ALL
+  SPECIFIC_PRODUCTS
+  SPECIFIC_COLLECTIONS
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// VISITOR (Ziyaretçi - Fingerprint bazlı, localStorage YOK)
+// ═══════════════════════════════════════════════════════════════════════════
+model Visitor {
+  id            String    @id @default(cuid())
+  shopId        String
+  shop          Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  fingerprint   String                                // Browser fingerprint hash
+  email         String?
+  customerId    String?                               // Shopify customer GID
+
+  // Metadata
+  country       String?
+  city          String?
+  device        String?                               // mobile, desktop, tablet
+  browser       String?
+  os            String?
+
+  // İstatistikler
+  totalPlays    Int       @default(0)
+  totalWins     Int       @default(0)
+
+  firstVisit    DateTime  @default(now())
+  lastVisit     DateTime  @default(now())
+
+  // İlişkiler
+  plays         Play[]
+  discounts     Discount[]
+  sessions      Session[]
+
+  @@unique([shopId, fingerprint])
+  @@index([shopId, fingerprint])
+  @@index([shopId, email])
+  @@map("visitors")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SESSION (Oturum - Veritabanı bazlı, sessionStorage YOK)
+// ═══════════════════════════════════════════════════════════════════════════
+model Session {
+  id            String    @id @default(cuid())
+  visitorId     String
+  visitor       Visitor   @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+
+  token         String    @unique                     // Frontend'e gönderilen token
+
+  // Sayfa bilgileri
+  currentPage   String?
+  referrer      String?
+  utmSource     String?
+  utmMedium     String?
+  utmCampaign   String?
+
+  // Durum
+  isActive      Boolean   @default(true)
+
+  startedAt     DateTime  @default(now())
+  lastActivityAt DateTime @default(now())
+  endedAt       DateTime?
+
+  @@index([token])
+  @@index([visitorId])
+  @@map("sessions")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PLAY (Oyun oynama kaydı)
+// ═══════════════════════════════════════════════════════════════════════════
+model Play {
+  id            String      @id @default(cuid())
+  gameId        String
+  game          Game        @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  visitorId     String
+  visitor       Visitor     @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+
+  result        PlayResult                            // WIN, LOSE
+  segmentId     String?                               // Kazanılan segment ID
+
+  // Ödül detayları (JSON)
+  // { type, value, label }
+  prize         Json?
+
+  // İndirim ilişkisi
+  discountId    String?     @unique
+  discount      Discount?   @relation(fields: [discountId], references: [id])
+
+  playedAt      DateTime    @default(now())
+
+  @@index([gameId, visitorId])
+  @@index([visitorId, playedAt])
+  @@map("plays")
+}
+
+enum PlayResult {
+  WIN
+  LOSE
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DISCOUNT (Oluşturulan indirim kodları)
+// ═══════════════════════════════════════════════════════════════════════════
+model Discount {
+  id              String          @id @default(cuid())
+  shopId          String
+  shop            Shop            @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  visitorId       String
+  visitor         Visitor         @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+  ruleId          String
+  rule            DiscountRule    @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  code            String                              // SPIN10-XXXXX
+  shopifyId       String?                             // Shopify discount node GID
+
+  type            PrizeType
+  value           Float
+
+  status          DiscountStatus  @default(CREATED)
+
+  // Kullanım bilgileri
+  usedAt          DateTime?
+  usedOrderId     String?                             // Shopify order GID
+  usedOrderAmount Float?
+
+  expiresAt       DateTime
+
+  // İlişki
+  play            Play?
+
+  createdAt       DateTime        @default(now())
+
+  @@unique([shopId, code])
+  @@index([shopId, status])
+  @@index([code])
+  @@index([expiresAt])
+  @@map("discounts")
+}
+
+enum DiscountStatus {
+  CREATED     // Oluşturuldu, henüz kullanılmadı
+  USED        // Kullanıldı
+  EXPIRED     // Süresi doldu
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ANALYTICS (Günlük istatistikler - Performans için)
+// ═══════════════════════════════════════════════════════════════════════════
+model Analytics {
+  id            String    @id @default(cuid())
+  shopId        String
+  gameId        String?
+
+  date          DateTime  @db.Date
+
+  // Metrikler
+  views         Int       @default(0)                 // Oyun görüntülenme
+  plays         Int       @default(0)                 // Oyun oynanma
+  wins          Int       @default(0)                 // Kazanma
+  claims        Int       @default(0)                 // Kod alma
+  redemptions   Int       @default(0)                 // Kod kullanma
+  revenue       Float     @default(0)                 // Elde edilen gelir
+
+  @@unique([shopId, gameId, date])
+  @@index([shopId, date])
+  @@map("analytics")
+}
+

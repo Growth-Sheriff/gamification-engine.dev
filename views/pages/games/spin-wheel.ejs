@@ -1,0 +1,366 @@
+<%- include('../../layouts/admin', { body: `
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="mb-1">
+      <i class="ti ti-rotate-clockwise me-2"></i>
+      Spin Wheel
+    </h4>
+    <p class="text-muted mb-0">Çark ayarlarını yapılandırın</p>
+  </div>
+  <div class="d-flex gap-2">
+    <button type="button" class="btn btn-outline-secondary" id="previewBtn">
+      <i class="ti ti-eye me-1"></i> Önizle
+    </button>
+    <button type="button" class="btn btn-primary" id="saveBtn">
+      <i class="ti ti-device-floppy me-1"></i> Kaydet
+    </button>
+  </div>
+</div>
+
+<div class="row g-4">
+
+  <!-- Left Column - Settings -->
+  <div class="col-lg-6">
+
+    <!-- General Settings -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Genel Ayarlar</h5>
+      </div>
+      <div class="card-body">
+        <form id="gameSettingsForm">
+          <input type="hidden" name="gameId" value="${ typeof game !== 'undefined' ? game.id : '' }">
+
+          <div class="mb-3">
+            <label class="form-label">Oyun Adı</label>
+            <input type="text" class="form-control" name="name" value="${ typeof game !== 'undefined' ? game.name : 'Şanslı Çark' }">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Durum</label>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" name="isActive" id="isActive" ${ typeof game !== 'undefined' && game.isActive ? 'checked' : '' }>
+              <label class="form-check-label" for="isActive">
+                ${ typeof game !== 'undefined' && game.isActive ? 'Aktif' : 'Pasif' }
+              </label>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Tetikleyici</label>
+              <select class="form-select" name="trigger">
+                <option value="PAGE_LOAD" ${ typeof game !== 'undefined' && game.trigger === 'PAGE_LOAD' ? 'selected' : '' }>Sayfa Yüklendiğinde</option>
+                <option value="TIME_ON_PAGE" ${ typeof game !== 'undefined' && game.trigger === 'TIME_ON_PAGE' ? 'selected' : '' }>X Saniye Sonra</option>
+                <option value="SCROLL_DEPTH" ${ typeof game !== 'undefined' && game.trigger === 'SCROLL_DEPTH' ? 'selected' : '' }>%X Scroll Sonrası</option>
+                <option value="EXIT_INTENT" ${ typeof game !== 'undefined' && game.trigger === 'EXIT_INTENT' ? 'selected' : '' }>Çıkış Niyetinde</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Değer</label>
+              <div class="input-group">
+                <input type="number" class="form-control" name="triggerValue" value="${ typeof game !== 'undefined' ? game.triggerValue : 3000 }">
+                <span class="input-group-text">ms</span>
+              </div>
+            </div>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <!-- Segments -->
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Çark Segmentleri</h5>
+        <button type="button" class="btn btn-sm btn-primary" id="addSegmentBtn">
+          <i class="ti ti-plus me-1"></i> Ekle
+        </button>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-modern mb-0" id="segmentsTable">
+            <thead>
+              <tr>
+                <th width="30">#</th>
+                <th>Etiket</th>
+                <th width="100">Tür</th>
+                <th width="80">Değer</th>
+                <th width="80">Olasılık</th>
+                <th width="60">Renk</th>
+                <th width="60"></th>
+              </tr>
+            </thead>
+            <tbody id="segmentsList">
+              ${ typeof game !== 'undefined' && game.segments ? game.segments.map((seg, index) => \`
+                <tr data-id="\${ seg.id }">
+                  <td><span class="badge bg-secondary">\${ index + 1 }</span></td>
+                  <td>
+                    <input type="text" class="form-control form-control-sm segment-label" value="\${ seg.label }">
+                  </td>
+                  <td>
+                    <select class="form-select form-select-sm segment-type">
+                      <option value="PERCENTAGE" \${ seg.type === 'PERCENTAGE' ? 'selected' : '' }>%</option>
+                      <option value="FIXED_AMOUNT" \${ seg.type === 'FIXED_AMOUNT' ? 'selected' : '' }>$</option>
+                      <option value="FREE_SHIPPING" \${ seg.type === 'FREE_SHIPPING' ? 'selected' : '' }>Kargo</option>
+                      <option value="NO_PRIZE" \${ seg.type === 'NO_PRIZE' ? 'selected' : '' }>Yok</option>
+                    </select>
+                  </td>
+                  <td>
+                    <input type="number" class="form-control form-control-sm segment-value" value="\${ seg.value }" min="0">
+                  </td>
+                  <td>
+                    <div class="input-group input-group-sm">
+                      <input type="number" class="form-control segment-probability" value="\${ Math.round(seg.probability * 100) }" min="0" max="100">
+                      <span class="input-group-text">%</span>
+                    </div>
+                  </td>
+                  <td>
+                    <input type="color" class="form-control form-control-color segment-color" value="\${ seg.color }" style="width: 40px; height: 32px; padding: 2px;">
+                  </td>
+                  <td>
+                    <button type="button" class="btn btn-sm btn-icon btn-outline-danger delete-segment">
+                      <i class="ti ti-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              \`).join('') : '' }
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer">
+        <small class="text-muted">
+          <i class="ti ti-info-circle me-1"></i>
+          Toplam olasılık: <strong id="totalProbability">100</strong>%
+        </small>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Right Column - Preview -->
+  <div class="col-lg-6">
+    <div class="card sticky-top" style="top: 100px;">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Önizleme</h5>
+      </div>
+      <div class="card-body text-center">
+
+        <!-- Wheel Preview -->
+        <div class="wheel-preview-container mb-4">
+          <svg id="wheelPreview" width="300" height="300" viewBox="0 0 300 300">
+            <!-- Wheel will be rendered here -->
+          </svg>
+        </div>
+
+        <button type="button" class="btn btn-lg btn-primary" id="spinDemoBtn">
+          <i class="ti ti-rotate-clockwise me-2"></i>
+          Demo Çevir
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  .wheel-preview-container {
+    position: relative;
+    display: inline-block;
+  }
+
+  .wheel-preview-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 25px solid #333;
+    z-index: 10;
+  }
+
+  #wheelPreview {
+    transition: transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+  }
+
+  .spinning {
+    animation: none !important;
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const wheelPreview = document.getElementById('wheelPreview');
+  const segmentsList = document.getElementById('segmentsList');
+
+  // Render wheel preview
+  function renderWheel() {
+    const segments = [];
+    segmentsList.querySelectorAll('tr').forEach(row => {
+      segments.push({
+        label: row.querySelector('.segment-label').value,
+        color: row.querySelector('.segment-color').value,
+        probability: parseFloat(row.querySelector('.segment-probability').value) / 100
+      });
+    });
+
+    if (segments.length === 0) return;
+
+    const centerX = 150;
+    const centerY = 150;
+    const radius = 140;
+
+    let svg = '';
+    let startAngle = 0;
+    const totalProbability = segments.reduce((sum, s) => sum + s.probability, 0);
+
+    segments.forEach((segment, index) => {
+      const sliceAngle = (segment.probability / totalProbability) * 360;
+      const endAngle = startAngle + sliceAngle;
+
+      const startRad = (startAngle - 90) * Math.PI / 180;
+      const endRad = (endAngle - 90) * Math.PI / 180;
+
+      const x1 = centerX + radius * Math.cos(startRad);
+      const y1 = centerY + radius * Math.sin(startRad);
+      const x2 = centerX + radius * Math.cos(endRad);
+      const y2 = centerY + radius * Math.sin(endRad);
+
+      const largeArc = sliceAngle > 180 ? 1 : 0;
+
+      svg += \`<path d="M\${centerX},\${centerY} L\${x1},\${y1} A\${radius},\${radius} 0 \${largeArc},1 \${x2},\${y2} Z" fill="\${segment.color}" stroke="#fff" stroke-width="2"/>\`;
+
+      // Label
+      const midAngle = (startAngle + sliceAngle / 2 - 90) * Math.PI / 180;
+      const labelX = centerX + (radius * 0.65) * Math.cos(midAngle);
+      const labelY = centerY + (radius * 0.65) * Math.sin(midAngle);
+      const rotation = startAngle + sliceAngle / 2;
+
+      svg += \`<text x="\${labelX}" y="\${labelY}" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-size="12" font-weight="600" transform="rotate(\${rotation}, \${labelX}, \${labelY})">\${segment.label}</text>\`;
+
+      startAngle = endAngle;
+    });
+
+    // Center circle
+    svg += \`<circle cx="\${centerX}" cy="\${centerY}" r="20" fill="#333"/>\`;
+
+    wheelPreview.innerHTML = svg;
+
+    // Update total probability
+    document.getElementById('totalProbability').textContent = Math.round(totalProbability * 100);
+  }
+
+  // Initial render
+  renderWheel();
+
+  // Update on changes
+  segmentsList.addEventListener('input', renderWheel);
+
+  // Demo spin
+  document.getElementById('spinDemoBtn').addEventListener('click', function() {
+    const randomAngle = 1800 + Math.random() * 360;
+    wheelPreview.style.transform = \`rotate(\${randomAngle}deg)\`;
+
+    setTimeout(() => {
+      wheelPreview.style.transition = 'none';
+      wheelPreview.style.transform = 'rotate(0deg)';
+      setTimeout(() => {
+        wheelPreview.style.transition = 'transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
+      }, 50);
+    }, 5500);
+  });
+
+  // Add segment
+  document.getElementById('addSegmentBtn').addEventListener('click', function() {
+    const index = segmentsList.querySelectorAll('tr').length + 1;
+    const colors = ['#7367F0', '#28C76F', '#FF9F43', '#EA5455', '#00CFE8', '#82868B'];
+    const color = colors[index % colors.length];
+
+    const row = document.createElement('tr');
+    row.innerHTML = \`
+      <td><span class="badge bg-secondary">\${index}</span></td>
+      <td><input type="text" class="form-control form-control-sm segment-label" value="Yeni Segment"></td>
+      <td>
+        <select class="form-select form-select-sm segment-type">
+          <option value="PERCENTAGE">%</option>
+          <option value="FIXED_AMOUNT">$</option>
+          <option value="FREE_SHIPPING">Kargo</option>
+          <option value="NO_PRIZE">Yok</option>
+        </select>
+      </td>
+      <td><input type="number" class="form-control form-control-sm segment-value" value="5" min="0"></td>
+      <td>
+        <div class="input-group input-group-sm">
+          <input type="number" class="form-control segment-probability" value="10" min="0" max="100">
+          <span class="input-group-text">%</span>
+        </div>
+      </td>
+      <td><input type="color" class="form-control form-control-color segment-color" value="\${color}" style="width: 40px; height: 32px; padding: 2px;"></td>
+      <td>
+        <button type="button" class="btn btn-sm btn-icon btn-outline-danger delete-segment">
+          <i class="ti ti-trash"></i>
+        </button>
+      </td>
+    \`;
+    segmentsList.appendChild(row);
+    renderWheel();
+  });
+
+  // Delete segment
+  segmentsList.addEventListener('click', function(e) {
+    if (e.target.closest('.delete-segment')) {
+      e.target.closest('tr').remove();
+      renderWheel();
+    }
+  });
+
+  // Save
+  document.getElementById('saveBtn').addEventListener('click', async function() {
+    const gameId = document.querySelector('[name="gameId"]').value;
+    const segments = [];
+
+    segmentsList.querySelectorAll('tr').forEach((row, index) => {
+      segments.push({
+        label: row.querySelector('.segment-label').value,
+        type: row.querySelector('.segment-type').value,
+        value: parseFloat(row.querySelector('.segment-value').value) || 0,
+        probability: parseFloat(row.querySelector('.segment-probability').value) / 100,
+        color: row.querySelector('.segment-color').value,
+        order: index
+      });
+    });
+
+    // Save game settings
+    await fetch(\`/api/games/\${gameId}\`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: document.querySelector('[name="name"]').value,
+        isActive: document.querySelector('[name="isActive"]').checked,
+        trigger: document.querySelector('[name="trigger"]').value,
+        triggerValue: parseInt(document.querySelector('[name="triggerValue"]').value)
+      })
+    });
+
+    // Save segments
+    await fetch(\`/api/games/\${gameId}/segments\`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ segments })
+    });
+
+    alert('Kaydedildi!');
+  });
+});
+</script>
+
+`, active: 'spin-wheel' }) %>
+

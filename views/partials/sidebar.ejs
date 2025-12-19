@@ -1,0 +1,106 @@
+<!-- Sidebar / Menu -->
+<aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+
+  <!-- App Brand -->
+  <div class="app-brand demo">
+    <a href="/" class="app-brand-link">
+      <span class="app-brand-logo">
+        <i class="ti ti-device-gamepad-2"></i>
+        <span>Gamification</span>
+      </span>
+    </a>
+  </div>
+
+  <div class="menu-inner-shadow"></div>
+
+  <ul class="menu-inner py-1">
+
+    <!-- Dashboard -->
+    <li class="menu-item <%= typeof active !== 'undefined' && active === 'dashboard' ? 'active' : '' %>">
+      <a href="/" class="menu-link">
+        <i class="menu-icon ti ti-smart-home"></i>
+        <div>Dashboard</div>
+      </a>
+    </li>
+
+    <!-- Games Header -->
+    <li class="menu-header small text-uppercase">
+      <span class="menu-header-text" style="color: rgba(255,255,255,0.5);">Oyunlar</span>
+    </li>
+
+    <!-- Spin Wheel -->
+    <li class="menu-item <%= typeof active !== 'undefined' && active === 'spin-wheel' ? 'active' : '' %>">
+      <a href="/games/spin-wheel" class="menu-link">
+        <i class="menu-icon ti ti-rotate-clockwise"></i>
+        <div>Spin Wheel</div>
+      </a>
+    </li>
+
+    <!-- Scratch Card -->
+    <li class="menu-item <%= typeof active !== 'undefined' && active === 'scratch-card' ? 'active' : '' %>">
+      <a href="/games/scratch-card" class="menu-link">
+        <i class="menu-icon ti ti-ticket"></i>
+        <div>Scratch Card</div>
+      </a>
+    </li>
+
+    <!-- Popup -->
+    <li class="menu-item <%= typeof active !== 'undefined' && active === 'popup' ? 'active' : '' %>">
+      <a href="/games/popup" class="menu-link">
+        <i class="menu-icon ti ti-window"></i>
+        <div>Popup</div>
+      </a>
+    </li>
+
+    <!-- Discounts Header -->
+    <li class="menu-header small text-uppercase">
+      <span class="menu-header-text" style="color: rgba(255,255,255,0.5);">İndirimler</span>
+    </li>
+
+    <!-- Discount Rules -->
+    <li class="menu-item <%= typeof active !== 'undefined' && active === 'rules' ? 'active' : '' %>">
+      <a href="/discounts/rules" class="menu-link">
+        <i class="menu-icon ti ti-list-check"></i>
+        <div>Kurallar</div>
+      </a>
+    </li>
+
+    <!-- Discount Codes -->
+    <li class="menu-item <%= typeof active !== 'undefined' && active === 'codes' ? 'active' : '' %>">
+      <a href="/discounts/codes" class="menu-link">
+        <i class="menu-icon ti ti-tag"></i>
+        <div>Kodlar</div>
+      </a>
+    </li>
+
+    <!-- Analytics Header -->
+    <li class="menu-header small text-uppercase">
+      <span class="menu-header-text" style="color: rgba(255,255,255,0.5);">Raporlar</span>
+    </li>
+
+    <!-- Analytics -->
+    <li class="menu-item <%= typeof active !== 'undefined' && active === 'analytics' ? 'active' : '' %>">
+      <a href="/analytics" class="menu-link">
+        <i class="menu-icon ti ti-chart-bar"></i>
+        <div>Analitik</div>
+      </a>
+    </li>
+
+    <!-- Settings Header -->
+    <li class="menu-header small text-uppercase">
+      <span class="menu-header-text" style="color: rgba(255,255,255,0.5);">Ayarlar</span>
+    </li>
+
+    <!-- Settings -->
+    <li class="menu-item <%= typeof active !== 'undefined' && active === 'settings' ? 'active' : '' %>">
+      <a href="/settings" class="menu-link">
+        <i class="menu-icon ti ti-settings"></i>
+        <div>Ayarlar</div>
+      </a>
+    </li>
+
+  </ul>
+
+</aside>
+<!-- / Sidebar -->
+

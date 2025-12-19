@@ -1,0 +1,25 @@
+/**
+ * Gamification Engine - Prisma Client
+ * Database connection singleton
+ */
+
+import { PrismaClient } from '@prisma/client';
+import { config } from '../config.js';
+
+// Prevent multiple instances in development
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    log: config.isDevelopment ? ['query', 'error', 'warn'] : ['error'],
+  });
+
+if (!config.isProduction) {
+  globalForPrisma.prisma = prisma;
+}
+
+export default prisma;
+

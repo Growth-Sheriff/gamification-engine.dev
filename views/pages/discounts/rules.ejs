@@ -1,0 +1,101 @@
+<%- include('../../layouts/admin', { body: `
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="mb-1">
+      <i class="ti ti-list-check me-2"></i>
+      İndirim Kuralları
+    </h4>
+    <p class="text-muted mb-0">İndirim kurallarını yönetin</p>
+  </div>
+  <a href="/discounts/rules/new" class="btn btn-primary">
+    <i class="ti ti-plus me-1"></i> Yeni Kural
+  </a>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-modern mb-0">
+        <thead>
+          <tr>
+            <th>Kural Adı</th>
+            <th>Oyun</th>
+            <th>Oyun/Gün</th>
+            <th>Geçerlilik</th>
+            <th>Kullanılan</th>
+            <th>Durum</th>
+            <th width="100"></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${ typeof rules !== 'undefined' && rules.length > 0 ? rules.map(rule => \`
+            <tr>
+              <td>
+                <strong>\${ rule.name }</strong>
+              </td>
+              <td>
+                ${ rule.game ? \`<span class="badge bg-label-primary">\${ rule.game.name }</span>\` : '<span class="text-muted">Tümü</span>' }
+              </td>
+              <td>
+                <span class="badge bg-label-secondary">\${ rule.maxPlaysPerVisitor }/gün</span>
+              </td>
+              <td>
+                <span class="badge bg-label-info">\${ rule.validityDays } gün</span>
+              </td>
+              <td>
+                <strong>\${ rule._count.discounts }</strong>
+              </td>
+              <td>
+                <span class="badge badge-soft \${ rule.isActive ? 'badge-soft-success' : 'badge-soft-secondary' }">
+                  \${ rule.isActive ? 'Aktif' : 'Pasif' }
+                </span>
+              </td>
+              <td>
+                <div class="dropdown">
+                  <button type="button" class="btn btn-sm btn-icon btn-outline-secondary dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                    <i class="ti ti-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="/discounts/rules/\${ rule.id }"><i class="ti ti-pencil me-2"></i> Düzenle</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger delete-rule" href="#" data-id="\${ rule.id }"><i class="ti ti-trash me-2"></i> Sil</a></li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+          \`).join('') : \`
+            <tr>
+              <td colspan="7" class="text-center py-5">
+                <div class="empty-state">
+                  <i class="ti ti-list-check"></i>
+                  <p class="mb-3">Henüz kural oluşturulmamış</p>
+                  <a href="/discounts/rules/new" class="btn btn-primary">
+                    <i class="ti ti-plus me-1"></i> İlk Kuralı Oluştur
+                  </a>
+                </div>
+              </td>
+            </tr>
+          \` }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.delete-rule').forEach(btn => {
+  btn.addEventListener('click', async function(e) {
+    e.preventDefault();
+    if (!confirm('Bu kuralı silmek istediğinize emin misiniz?')) return;
+
+    const id = this.dataset.id;
+    await fetch(\`/api/rules/\${id}\`, { method: 'DELETE' });
+    location.reload();
+  });
+});
+</script>
+
+`, active: 'rules' }) %>
+
