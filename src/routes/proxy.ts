@@ -119,7 +119,7 @@ router.post('/init', async (req: Request, res: Response) => {
     });
 
     // Get active game
-    const activeGame = await prisma.game.findFirst({
+    let activeGame = await prisma.game.findFirst({
       where: {
         shopId: shop.id,
         isActive: true,
