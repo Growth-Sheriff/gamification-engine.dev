@@ -1,223 +1,223 @@
-<%- include('../layouts/admin', { body: `
+<%- Include('../layouts/admIn', { body: `
 
 <!-- Dashboard Header -->
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <div>
+<dIv class="d-flex justIfy-content-between alIgn-Items-center mb-4">
+  <dIv>
     <h4 class="mb-1">Dashboard</h4>
-    <p class="text-muted mb-0">Gamification performansınıza genel bakış</p>
-  </div>
-  <div>
+    <p class="text-muted mb-0">GamIfIcatIon performansınıza genel bakış</p>
+  </dIv>
+  <dIv>
     <span class="badge badge-soft badge-soft-success">
-      <i class="ti ti-check me-1"></i> Sistem Aktif
+      <I class="tI tI-check me-1"></I> SIstem AktIf
     </span>
-  </div>
-</div>
+  </dIv>
+</dIv>
 
 <!-- Stats Cards -->
-<div class="row g-4 mb-4">
+<dIv class="row g-4 mb-4">
 
-  <!-- Total Views -->
-  <div class="col-sm-6 col-xl-3">
-    <div class="card stats-card">
-      <div class="stats-icon" style="background: rgba(115, 103, 240, 0.12);">
-        <i class="ti ti-eye" style="color: #7367f0;"></i>
-      </div>
-      <div class="stats-value">${ typeof stats !== 'undefined' ? stats.totalPlays : 0 }</div>
-      <div class="stats-label">Toplam Oyun</div>
-    </div>
-  </div>
+  <!-- Total VIews -->
+  <dIv class="col-sm-6 col-xl-3">
+    <dIv class="card stats-card">
+      <dIv class="stats-Icon" style="background: rgba(115, 103, 240, 0.12);">
+        <I class="tI tI-eye" style="color: #7367f0;"></I>
+      </dIv>
+      <dIv class="stats-value">${ typeof stats !== 'undefIned' ? stats.totalPlays : 0 }</dIv>
+      <dIv class="stats-label">Toplam Oyun</dIv>
+    </dIv>
+  </dIv>
 
-  <!-- Total Wins -->
-  <div class="col-sm-6 col-xl-3">
-    <div class="card stats-card">
-      <div class="stats-icon" style="background: rgba(40, 199, 111, 0.12);">
-        <i class="ti ti-trophy" style="color: #28c76f;"></i>
-      </div>
-      <div class="stats-value">${ typeof stats !== 'undefined' ? stats.totalWins : 0 }</div>
-      <div class="stats-label">Kazanan</div>
-    </div>
-  </div>
+  <!-- Total WIns -->
+  <dIv class="col-sm-6 col-xl-3">
+    <dIv class="card stats-card">
+      <dIv class="stats-Icon" style="background: rgba(40, 199, 111, 0.12);">
+        <I class="tI tI-trophy" style="color: #28c76f;"></I>
+      </dIv>
+      <dIv class="stats-value">${ typeof stats !== 'undefIned' ? stats.totalWIns : 0 }</dIv>
+      <dIv class="stats-label">Kazanan</dIv>
+    </dIv>
+  </dIv>
 
-  <!-- Conversion Rate -->
-  <div class="col-sm-6 col-xl-3">
-    <div class="card stats-card">
-      <div class="stats-icon" style="background: rgba(255, 159, 67, 0.12);">
-        <i class="ti ti-percentage" style="color: #ff9f43;"></i>
-      </div>
-      <div class="stats-value">${ typeof stats !== 'undefined' ? stats.winRate : 0 }%</div>
-      <div class="stats-label">Kazanma Oranı</div>
-    </div>
-  </div>
+  <!-- ConversIon Rate -->
+  <dIv class="col-sm-6 col-xl-3">
+    <dIv class="card stats-card">
+      <dIv class="stats-Icon" style="background: rgba(255, 159, 67, 0.12);">
+        <I class="tI tI-percentage" style="color: #ff9f43;"></I>
+      </dIv>
+      <dIv class="stats-value">${ typeof stats !== 'undefIned' ? stats.wInRate : 0 }%</dIv>
+      <dIv class="stats-label">Kazanma Oranı</dIv>
+    </dIv>
+  </dIv>
 
-  <!-- Used Discounts -->
-  <div class="col-sm-6 col-xl-3">
-    <div class="card stats-card">
-      <div class="stats-icon" style="background: rgba(0, 207, 232, 0.12);">
-        <i class="ti ti-tag" style="color: #00cfe8;"></i>
-      </div>
-      <div class="stats-value">${ typeof stats !== 'undefined' ? stats.usedDiscounts : 0 }</div>
-      <div class="stats-label">Kullanılan Kod</div>
-    </div>
-  </div>
+  <!-- Used DIscounts -->
+  <dIv class="col-sm-6 col-xl-3">
+    <dIv class="card stats-card">
+      <dIv class="stats-Icon" style="background: rgba(0, 207, 232, 0.12);">
+        <I class="tI tI-tag" style="color: #00cfe8;"></I>
+      </dIv>
+      <dIv class="stats-value">${ typeof stats !== 'undefIned' ? stats.usedDIscounts : 0 }</dIv>
+      <dIv class="stats-label">Kullanılan Kod</dIv>
+    </dIv>
+  </dIv>
 
-</div>
+</dIv>
 
-<!-- Main Content Row -->
-<div class="row g-4">
+<!-- MaIn Content Row -->
+<dIv class="row g-4">
 
-  <!-- Active Games -->
-  <div class="col-lg-4">
-    <div class="card h-100">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">
-          <i class="ti ti-device-gamepad-2 me-2"></i>
-          Aktif Oyunlar
+  <!-- ActIve Games -->
+  <dIv class="col-lg-4">
+    <dIv class="card h-100">
+      <dIv class="card-header d-flex justIfy-content-between alIgn-Items-center">
+        <h5 class="card-tItle mb-0">
+          <I class="tI tI-devIce-gamepad-2 me-2"></I>
+          AktIf Oyunlar
         </h5>
-        <span class="badge bg-primary">${ typeof stats !== 'undefined' ? stats.activeGames : 0 }</span>
-      </div>
-      <div class="card-body">
-        ${ typeof games !== 'undefined' && games.length > 0 ? games.map(game => \`
-          <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
-            <div class="d-flex align-items-center">
-              <div class="avatar me-3">
-                <span class="avatar-initial rounded bg-label-\${ game.type === 'SPIN_WHEEL' ? 'primary' : game.type === 'SCRATCH_CARD' ? 'warning' : 'info' }">
-                  <i class="ti ti-\${ game.type === 'SPIN_WHEEL' ? 'rotate-clockwise' : game.type === 'SCRATCH_CARD' ? 'ticket' : 'window' }"></i>
+        <span class="badge bg-prImary">${ typeof stats !== 'undefIned' ? stats.actIveGames : 0 }</span>
+      </dIv>
+      <dIv class="card-body">
+        ${ typeof games !== 'undefIned' && games.length > 0 ? games.map(game => \`
+          <dIv class="d-flex alIgn-Items-center justIfy-content-between py-2 border-bottom">
+            <dIv class="d-flex alIgn-Items-center">
+              <dIv class="avatar me-3">
+                <span class="avatar-InItIal rounded bg-label-\${ game.type === 'SPIN_WHEEL' ? 'prImary' : game.type === 'SCRATCH_CARD' ? 'warnIng' : 'Info' }">
+                  <I class="tI tI-\${ game.type === 'SPIN_WHEEL' ? 'rotate-clockwIse' : game.type === 'SCRATCH_CARD' ? 'tIcket' : 'wIndow' }"></I>
                 </span>
-              </div>
-              <div>
+              </dIv>
+              <dIv>
                 <h6 class="mb-0">\${ game.name }</h6>
                 <small class="text-muted">\${ game.type.replace('_', ' ') }</small>
-              </div>
-            </div>
-            <span class="badge badge-soft \${ game.isActive ? 'badge-soft-success' : 'badge-soft-secondary' }">
-              \${ game.isActive ? 'Aktif' : 'Pasif' }
+              </dIv>
+            </dIv>
+            <span class="badge badge-soft \${ game.IsActIve ? 'badge-soft-success' : 'badge-soft-secondary' }">
+              \${ game.IsActIve ? 'AktIf' : 'PasIf' }
             </span>
-          </div>
-        \`).join('') : \`
-          <div class="empty-state">
-            <i class="ti ti-mood-empty"></i>
+          </dIv>
+        \`).joIn('') : \`
+          <dIv class="empty-state">
+            <I class="tI tI-mood-empty"></I>
             <p class="mb-0">Henüz oyun yok</p>
-          </div>
+          </dIv>
         \` }
-      </div>
-      <div class="card-footer text-center">
-        <a href="/games/spin-wheel" class="btn btn-sm btn-outline-primary">
-          <i class="ti ti-plus me-1"></i> Oyun Ekle
+      </dIv>
+      <dIv class="card-footer text-center">
+        <a href="/games/spIn-wheel" class="btn btn-sm btn-outlIne-prImary">
+          <I class="tI tI-plus me-1"></I> Oyun Ekle
         </a>
-      </div>
-    </div>
-  </div>
+      </dIv>
+    </dIv>
+  </dIv>
 
   <!-- Recent Plays -->
-  <div class="col-lg-8">
-    <div class="card h-100">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">
-          <i class="ti ti-history me-2"></i>
+  <dIv class="col-lg-8">
+    <dIv class="card h-100">
+      <dIv class="card-header d-flex justIfy-content-between alIgn-Items-center">
+        <h5 class="card-tItle mb-0">
+          <I class="tI tI-hIstory me-2"></I>
           Son Oyunlar
         </h5>
-        <a href="/analytics" class="btn btn-sm btn-outline-primary">Tümünü Gör</a>
-      </div>
-      <div class="card-body p-0">
-        <div class="table-responsive">
+        <a href="/analytIcs" class="btn btn-sm btn-outlIne-prImary">Tümünü Gör</a>
+      </dIv>
+      <dIv class="card-body p-0">
+        <dIv class="table-responsIve">
           <table class="table table-modern mb-0">
             <thead>
               <tr>
-                <th>Ziyaretçi</th>
+                <th>ZIyaretçI</th>
                 <th>Oyun</th>
                 <th>Sonuç</th>
                 <th>Kod</th>
-                <th>Tarih</th>
+                <th>TarIh</th>
               </tr>
             </thead>
             <tbody>
-              ${ typeof recentPlays !== 'undefined' && recentPlays.length > 0 ? recentPlays.map(play => \`
+              ${ typeof recentPlays !== 'undefIned' && recentPlays.length > 0 ? recentPlays.map(play => \`
                 <tr>
                   <td>
-                    <div class="d-flex align-items-center">
-                      <div class="avatar avatar-sm me-2">
-                        <span class="avatar-initial rounded-circle bg-label-secondary">
-                          <i class="ti ti-user"></i>
+                    <dIv class="d-flex alIgn-Items-center">
+                      <dIv class="avatar avatar-sm me-2">
+                        <span class="avatar-InItIal rounded-cIrcle bg-label-secondary">
+                          <I class="tI tI-user"></I>
                         </span>
-                      </div>
-                      <span class="text-truncate" style="max-width: 100px;">
-                        \${ play.visitor.email || play.visitor.fingerprint.substring(0, 10) + '...' }
+                      </dIv>
+                      <span class="text-truncate" style="max-wIdth: 100px;">
+                        \${ play.vIsItor.emaIl || play.vIsItor.fIngerprInt.substrIng(0, 10) + '...' }
                       </span>
-                    </div>
+                    </dIv>
                   </td>
                   <td>
-                    <span class="badge bg-label-primary">\${ play.game.name }</span>
+                    <span class="badge bg-label-prImary">\${ play.game.name }</span>
                   </td>
                   <td>
                     <span class="badge badge-soft \${ play.result === 'WIN' ? 'badge-soft-success' : 'badge-soft-danger' }">
-                      <i class="ti ti-\${ play.result === 'WIN' ? 'trophy' : 'x' } me-1"></i>
-                      \${ play.result === 'WIN' ? 'Kazandı' : 'Kaybetti' }
+                      <I class="tI tI-\${ play.result === 'WIN' ? 'trophy' : 'x' } me-1"></I>
+                      \${ play.result === 'WIN' ? 'Kazandı' : 'KaybettI' }
                     </span>
                   </td>
                   <td>
-                    ${ play.discount ? \`
-                      <code class="text-primary">\${ play.discount.code }</code>
-                      <span class="badge badge-soft \${ play.discount.status === 'USED' ? 'badge-soft-success' : 'badge-soft-warning' } ms-1">
-                        \${ play.discount.status === 'USED' ? '✓' : '⏳' }
+                    ${ play.dIscount ? \`
+                      <code class="text-prImary">\${ play.dIscount.code }</code>
+                      <span class="badge badge-soft \${ play.dIscount.status === 'USED' ? 'badge-soft-success' : 'badge-soft-warnIng' } ms-1">
+                        \${ play.dIscount.status === 'USED' ? '✓' : '⏳' }
                       </span>
                     \` : '<span class="text-muted">-</span>' }
                   </td>
                   <td>
-                    <small class="text-muted">\${ new Date(play.playedAt).toLocaleString('tr-TR') }</small>
+                    <small class="text-muted">\${ new Date(play.playedAt).toLocaleStrIng('tr-TR') }</small>
                   </td>
                 </tr>
-              \`).join('') : \`
+              \`).joIn('') : \`
                 <tr>
                   <td colspan="5" class="text-center py-4 text-muted">
-                    <i class="ti ti-mood-empty mb-2" style="font-size: 2rem;"></i>
+                    <I class="tI tI-mood-empty mb-2" style="font-sIze: 2rem;"></I>
                     <p class="mb-0">Henüz oyun kaydı yok</p>
                   </td>
                 </tr>
               \` }
             </tbody>
           </table>
-        </div>
-      </div>
-    </div>
-  </div>
+        </dIv>
+      </dIv>
+    </dIv>
+  </dIv>
 
-</div>
+</dIv>
 
-<!-- Quick Actions -->
-<div class="row g-4 mt-2">
-  <div class="col-12">
-    <div class="card">
-      <div class="card-body">
-        <div class="row g-3 text-center">
-          <div class="col-6 col-md-3">
-            <a href="/games/spin-wheel" class="btn btn-outline-primary w-100 py-3">
-              <i class="ti ti-rotate-clockwise ti-lg d-block mb-2"></i>
-              Spin Wheel Ayarla
+<!-- QuIck ActIons -->
+<dIv class="row g-4 mt-2">
+  <dIv class="col-12">
+    <dIv class="card">
+      <dIv class="card-body">
+        <dIv class="row g-3 text-center">
+          <dIv class="col-6 col-md-3">
+            <a href="/games/spIn-wheel" class="btn btn-outlIne-prImary w-100 py-3">
+              <I class="tI tI-rotate-clockwIse tI-lg d-block mb-2"></I>
+              SpIn Wheel Ayarla
             </a>
-          </div>
-          <div class="col-6 col-md-3">
-            <a href="/games/scratch-card" class="btn btn-outline-warning w-100 py-3">
-              <i class="ti ti-ticket ti-lg d-block mb-2"></i>
+          </dIv>
+          <dIv class="col-6 col-md-3">
+            <a href="/games/scratch-card" class="btn btn-outlIne-warnIng w-100 py-3">
+              <I class="tI tI-tIcket tI-lg d-block mb-2"></I>
               Scratch Card Ayarla
             </a>
-          </div>
-          <div class="col-6 col-md-3">
-            <a href="/discounts/rules" class="btn btn-outline-info w-100 py-3">
-              <i class="ti ti-list-check ti-lg d-block mb-2"></i>
+          </dIv>
+          <dIv class="col-6 col-md-3">
+            <a href="/dIscounts/rules" class="btn btn-outlIne-Info w-100 py-3">
+              <I class="tI tI-lIst-check tI-lg d-block mb-2"></I>
               Kural Oluştur
             </a>
-          </div>
-          <div class="col-6 col-md-3">
-            <a href="/analytics" class="btn btn-outline-success w-100 py-3">
-              <i class="ti ti-chart-bar ti-lg d-block mb-2"></i>
+          </dIv>
+          <dIv class="col-6 col-md-3">
+            <a href="/analytIcs" class="btn btn-outlIne-success w-100 py-3">
+              <I class="tI tI-chart-bar tI-lg d-block mb-2"></I>
               Rapor Görüntüle
             </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+          </dIv>
+        </dIv>
+      </dIv>
+    </dIv>
+  </dIv>
+</dIv>
 
-`, active: 'dashboard' }) %>
+`, actIve: 'dashboard' }) %>
 

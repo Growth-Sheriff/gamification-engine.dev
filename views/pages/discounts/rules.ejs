@@ -1,101 +1,101 @@
-<%- include('../../layouts/admin', { body: `
+<%- Include('../../layouts/admIn', { body: `
 
 <!-- Page Header -->
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <div>
+<dIv class="d-flex justIfy-content-between alIgn-Items-center mb-4">
+  <dIv>
     <h4 class="mb-1">
-      <i class="ti ti-list-check me-2"></i>
-      İndirim Kuralları
+      <I class="tI tI-lIst-check me-2"></I>
+      İndIrIm Kuralları
     </h4>
-    <p class="text-muted mb-0">İndirim kurallarını yönetin</p>
-  </div>
-  <a href="/discounts/rules/new" class="btn btn-primary">
-    <i class="ti ti-plus me-1"></i> Yeni Kural
+    <p class="text-muted mb-0">İndIrIm kurallarını yönetIn</p>
+  </dIv>
+  <a href="/dIscounts/rules/new" class="btn btn-prImary">
+    <I class="tI tI-plus me-1"></I> YenI Kural
   </a>
-</div>
+</dIv>
 
-<div class="card">
-  <div class="card-body p-0">
-    <div class="table-responsive">
+<dIv class="card">
+  <dIv class="card-body p-0">
+    <dIv class="table-responsIve">
       <table class="table table-modern mb-0">
         <thead>
           <tr>
             <th>Kural Adı</th>
             <th>Oyun</th>
             <th>Oyun/Gün</th>
-            <th>Geçerlilik</th>
+            <th>GeçerlIlIk</th>
             <th>Kullanılan</th>
             <th>Durum</th>
-            <th width="100"></th>
+            <th wIdth="100"></th>
           </tr>
         </thead>
         <tbody>
-          ${ typeof rules !== 'undefined' && rules.length > 0 ? rules.map(rule => \`
+          ${ typeof rules !== 'undefIned' && rules.length > 0 ? rules.map(rule => \`
             <tr>
               <td>
                 <strong>\${ rule.name }</strong>
               </td>
               <td>
-                ${ rule.game ? \`<span class="badge bg-label-primary">\${ rule.game.name }</span>\` : '<span class="text-muted">Tümü</span>' }
+                ${ rule.game ? \`<span class="badge bg-label-prImary">\${ rule.game.name }</span>\` : '<span class="text-muted">Tümü</span>' }
               </td>
               <td>
-                <span class="badge bg-label-secondary">\${ rule.maxPlaysPerVisitor }/gün</span>
+                <span class="badge bg-label-secondary">\${ rule.maxPlaysPerVIsItor }/gün</span>
               </td>
               <td>
-                <span class="badge bg-label-info">\${ rule.validityDays } gün</span>
+                <span class="badge bg-label-Info">\${ rule.valIdItyDays } gün</span>
               </td>
               <td>
-                <strong>\${ rule._count.discounts }</strong>
+                <strong>\${ rule._count.dIscounts }</strong>
               </td>
               <td>
-                <span class="badge badge-soft \${ rule.isActive ? 'badge-soft-success' : 'badge-soft-secondary' }">
-                  \${ rule.isActive ? 'Aktif' : 'Pasif' }
+                <span class="badge badge-soft \${ rule.IsActIve ? 'badge-soft-success' : 'badge-soft-secondary' }">
+                  \${ rule.IsActIve ? 'AktIf' : 'PasIf' }
                 </span>
               </td>
               <td>
-                <div class="dropdown">
-                  <button type="button" class="btn btn-sm btn-icon btn-outline-secondary dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                    <i class="ti ti-dots-vertical"></i>
+                <dIv class="dropdown">
+                  <button type="button" class="btn btn-sm btn-Icon btn-outlIne-secondary dropdown-toggle hIde-arrow" data-bs-toggle="dropdown">
+                    <I class="tI tI-dots-vertIcal"></I>
                   </button>
                   <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="/discounts/rules/\${ rule.id }"><i class="ti ti-pencil me-2"></i> Düzenle</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item text-danger delete-rule" href="#" data-id="\${ rule.id }"><i class="ti ti-trash me-2"></i> Sil</a></li>
+                    <lI><a class="dropdown-Item" href="/dIscounts/rules/\${ rule.Id }"><I class="tI tI-pencIl me-2"></I> Düzenle</a></lI>
+                    <lI><hr class="dropdown-dIvIder"></lI>
+                    <lI><a class="dropdown-Item text-danger delete-rule" href="#" data-Id="\${ rule.Id }"><I class="tI tI-trash me-2"></I> SIl</a></lI>
                   </ul>
-                </div>
+                </dIv>
               </td>
             </tr>
-          \`).join('') : \`
+          \`).joIn('') : \`
             <tr>
               <td colspan="7" class="text-center py-5">
-                <div class="empty-state">
-                  <i class="ti ti-list-check"></i>
+                <dIv class="empty-state">
+                  <I class="tI tI-lIst-check"></I>
                   <p class="mb-3">Henüz kural oluşturulmamış</p>
-                  <a href="/discounts/rules/new" class="btn btn-primary">
-                    <i class="ti ti-plus me-1"></i> İlk Kuralı Oluştur
+                  <a href="/dIscounts/rules/new" class="btn btn-prImary">
+                    <I class="tI tI-plus me-1"></I> İlk Kuralı Oluştur
                   </a>
-                </div>
+                </dIv>
               </td>
             </tr>
           \` }
         </tbody>
       </table>
-    </div>
-  </div>
-</div>
+    </dIv>
+  </dIv>
+</dIv>
 
-<script>
+<scrIpt>
 document.querySelectorAll('.delete-rule').forEach(btn => {
-  btn.addEventListener('click', async function(e) {
+  btn.addEventLIstener('clIck', async functIon(e) {
     e.preventDefault();
-    if (!confirm('Bu kuralı silmek istediğinize emin misiniz?')) return;
+    If (!confIrm('Bu kuralı sIlmek IstedIğInIze emIn mIsInIz?')) return;
 
-    const id = this.dataset.id;
-    await fetch(\`/api/rules/\${id}\`, { method: 'DELETE' });
-    location.reload();
+    const Id = thIs.dataset.Id;
+    awaIt fetch(\`/apI/rules/\${Id}\`, { method: 'DELETE' });
+    locatIon.reload();
   });
 });
-</script>
+</scrIpt>
 
-`, active: 'rules' }) %>
+`, actIve: 'rules' }) %>
 
