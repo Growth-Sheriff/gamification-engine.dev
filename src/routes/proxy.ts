@@ -645,10 +645,7 @@ router.post('/loyalty/redeem', async (req: Request, res: Response) => {
     const discountCode = `PUAN-${nanoid(8).toUpperCase()}`;
 
     // Create discount in Shopify
-    const shopifyClient = createShopifyClient({
-      shopDomain: shop.domain,
-      accessToken: shop.accessToken,
-    });
+    const shopifyClient = createShopifyClient(shop.domain, shop.accessToken);
 
     const now = new Date();
     const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
@@ -687,11 +684,32 @@ router.post('/loyalty/redeem', async (req: Request, res: Response) => {
       },
     });
 
+    // Get or create a default rule for loyalty discounts
+    let loyaltyRule = await prisma.discountRule.findFirst({
+      where: { shopId: shop.id, name: 'Loyalty Redemption' },
+    });
+
+    if (!loyaltyRule) {
+      loyaltyRule = await prisma.discountRule.create({
+        data: {
+          shopId: shop.id,
+          name: 'Loyalty Redemption',
+          isActive: true,
+          discountType: 'FIXED_AMOUNT',
+          discountValue: 0,
+          validDays: 30,
+          maxPlaysPerVisitor: 999,
+          cooldownHours: 0,
+        },
+      });
+    }
+
     // Store discount
     await prisma.discount.create({
       data: {
         shopId: shop.id,
         visitorId: visitor.id,
+        ruleId: loyaltyRule.id,
         code: discountCode,
         type: 'FIXED_AMOUNT',
         value: discountValue,
@@ -840,9 +858,11 @@ router.post('/social-proof', async (req: Request, res: Response) => {
         ? email.split('@')[0].slice(0, 3) + '***@' + email.split('@')[1]
         : email.slice(0, 3) + '***';
 
+      const prizeData = win.prize as { label?: string } | null;
+
       return {
         name: anonymized,
-        prize: win.prizeLabel || 'İndirim',
+        prize: prizeData?.label || 'İndirim',
         time: getRelativeTime(win.playedAt),
       };
     });
