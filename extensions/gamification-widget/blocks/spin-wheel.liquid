@@ -1,0 +1,87 @@
+{% comment %}
+  Gamification Engine - Spin Wheel Block
+  Backend-connected Spin Wheel for Shopify Theme App Extension
+{% endcomment %}
+
+{% schema %}
+{
+  "name": "Spin Wheel",
+  "target": "body",
+  "javascript": "spin-wheel.js",
+  "stylesheet": "spin-wheel.css",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enabled",
+      "label": "Enable Spin Wheel",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "trigger_delay",
+      "label": "Trigger Delay (seconds)",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "select",
+      "id": "trigger_type",
+      "label": "Trigger Type",
+      "options": [
+        { "value": "time", "label": "Time on page" },
+        { "value": "scroll", "label": "Scroll depth" },
+        { "value": "exit", "label": "Exit intent" }
+      ],
+      "default": "time"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "🎰 İndirim Çarkı"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Subtitle",
+      "default": "Çarkı çevir ve özel indirimini kazan!"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button Text",
+      "default": "🎲 Çarkı Çevir"
+    },
+    {
+      "type": "text",
+      "id": "badge_text",
+      "label": "Badge Text",
+      "default": "🔥 Şansını Dene!"
+    }
+  ]
+}
+{% endschema %}
+
+{% if block.settings.enabled %}
+  <script>
+    // Pass settings to JavaScript
+    window.GamificationConfig = window.GamificationConfig || {};
+    window.GamificationConfig.spinWheel = {
+      enabled: true,
+      triggerDelay: {{ block.settings.trigger_delay | default: 3 }} * 1000,
+      triggerType: '{{ block.settings.trigger_type | default: "time" }}',
+      title: '{{ block.settings.title | default: "🎰 İndirim Çarkı" | escape }}',
+      subtitle: '{{ block.settings.subtitle | default: "Çarkı çevir ve özel indirimini kazan!" | escape }}',
+      buttonText: '{{ block.settings.button_text | default: "🎲 Çarkı Çevir" | escape }}',
+      badgeText: '{{ block.settings.badge_text | default: "🔥 Şansını Dene!" | escape }}',
+      shopDomain: '{{ shop.permanent_domain }}',
+      customerId: '{{ customer.id | default: "" }}',
+      customerEmail: '{{ customer.email | default: "" }}',
+      pageType: '{{ request.page_type }}',
+      pagePath: '{{ request.path }}'
+    };
+  </script>
+{% endif %}
+

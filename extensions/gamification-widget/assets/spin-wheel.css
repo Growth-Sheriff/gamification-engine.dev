@@ -1,0 +1,490 @@
+/**
+ * Gamification Engine - Spin Wheel CSS
+ * Premium Gold/Black Design for DTF Transfer
+ * Backend-connected version
+ */
+
+/* ========================================
+   SPIN WHEEL OVERLAY & MODAL
+======================================== */
+.ge-spin-wheel-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.5s ease;
+}
+
+.ge-spin-wheel-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.ge-spin-wheel-modal {
+  background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
+  border-radius: 24px;
+  padding: 40px;
+  max-width: 600px;
+  width: 95%;
+  position: relative;
+  border: 3px solid #D4AF37;
+  box-shadow:
+    0 0 50px rgba(212, 175, 55, 0.3),
+    0 0 100px rgba(212, 175, 55, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transform: scale(0.8);
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.ge-spin-wheel-overlay.active .ge-spin-wheel-modal {
+  transform: scale(1);
+}
+
+.ge-spin-wheel-close {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 28px;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  z-index: 10;
+  background: none;
+  border: none;
+  line-height: 1;
+}
+
+.ge-spin-wheel-close:hover {
+  color: #fff;
+}
+
+/* ========================================
+   HEADER
+======================================== */
+.ge-spin-wheel-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.ge-spin-wheel-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #D4AF37 0%, #F5E7A3 50%, #D4AF37 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+  line-height: 1.2;
+}
+
+.ge-spin-wheel-subtitle {
+  color: #999;
+  font-size: 1rem;
+  font-weight: 400;
+  margin: 0;
+}
+
+/* ========================================
+   WHEEL CONTAINER
+======================================== */
+.ge-wheel-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 30px 0;
+}
+
+.ge-wheel-wrapper {
+  position: relative;
+  width: 320px;
+  height: 320px;
+}
+
+/* ========================================
+   THE WHEEL
+======================================== */
+.ge-wheel {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  position: relative;
+  overflow: hidden;
+  border: 6px solid #D4AF37;
+  box-shadow:
+    0 0 30px rgba(212, 175, 55, 0.4),
+    inset 0 0 50px rgba(0, 0, 0, 0.3);
+  transition: transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+}
+
+.ge-wheel.spinning {
+  transition: transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+}
+
+/* Dynamic segments via conic-gradient */
+.ge-wheel-segments {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.ge-wheel-segment {
+  position: absolute;
+  width: 50%;
+  height: 50%;
+  top: 0;
+  right: 0;
+  transform-origin: 0% 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 20px;
+}
+
+.ge-wheel-segment span {
+  position: absolute;
+  font-size: 1.1rem;
+  font-weight: 800;
+  transform: rotate(30deg) translateX(50px);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.ge-wheel-segment:nth-child(odd) span {
+  color: #D4AF37;
+}
+
+.ge-wheel-segment:nth-child(even) span {
+  color: #0a0a0a;
+}
+
+.ge-wheel-segment:nth-child(1) { transform: rotate(0deg) skewY(-30deg); }
+.ge-wheel-segment:nth-child(2) { transform: rotate(60deg) skewY(-30deg); }
+.ge-wheel-segment:nth-child(3) { transform: rotate(120deg) skewY(-30deg); }
+.ge-wheel-segment:nth-child(4) { transform: rotate(180deg) skewY(-30deg); }
+.ge-wheel-segment:nth-child(5) { transform: rotate(240deg) skewY(-30deg); }
+.ge-wheel-segment:nth-child(6) { transform: rotate(300deg) skewY(-30deg); }
+
+/* Center circle */
+.ge-wheel-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #D4AF37, #F5E7A3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.8rem;
+  color: #0a0a0a;
+  text-transform: uppercase;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 10;
+  border: none;
+}
+
+.ge-wheel-center:hover {
+  transform: translate(-50%, -50%) scale(1.05);
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.7);
+}
+
+/* Pointer/Arrow */
+.ge-wheel-pointer {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-top: 40px solid #D4AF37;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+  z-index: 20;
+}
+
+/* ========================================
+   4D VIBRATING BADGE
+======================================== */
+.ge-wheel-badge {
+  position: absolute;
+  top: -15px;
+  right: -15px;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  animation: ge-badge-vibrate 0.5s ease-in-out infinite;
+  box-shadow:
+    0 4px 15px rgba(220, 38, 38, 0.4),
+    0 0 30px rgba(220, 38, 38, 0.2);
+  z-index: 30;
+}
+
+@keyframes ge-badge-vibrate {
+  0%, 100% { transform: translate(0, 0) rotate(-5deg) scale(1); }
+  10% { transform: translate(-1px, -1px) rotate(-4deg) scale(1.02); }
+  20% { transform: translate(1px, -1px) rotate(-6deg) scale(0.98); }
+  30% { transform: translate(-1px, 1px) rotate(-5deg) scale(1.01); }
+  40% { transform: translate(1px, 1px) rotate(-4deg) scale(0.99); }
+  50% { transform: translate(-1px, 0) rotate(-6deg) scale(1.03); }
+  60% { transform: translate(1px, 0) rotate(-5deg) scale(0.98); }
+  70% { transform: translate(0, -1px) rotate(-4deg) scale(1.02); }
+  80% { transform: translate(0, 1px) rotate(-6deg) scale(0.99); }
+  90% { transform: translate(-1px, 0) rotate(-5deg) scale(1.01); }
+}
+
+/* ========================================
+   SPIN BUTTON
+======================================== */
+.ge-spin-btn {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  margin: 20px auto 0;
+  padding: 18px 40px;
+  background: linear-gradient(135deg, #D4AF37 0%, #F5E7A3 50%, #D4AF37 100%);
+  border: none;
+  border-radius: 50px;
+  color: #0a0a0a;
+  font-size: 1.2rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow:
+    0 5px 25px rgba(212, 175, 55, 0.4),
+    0 0 50px rgba(212, 175, 55, 0.2);
+}
+
+.ge-spin-btn:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow:
+    0 8px 35px rgba(212, 175, 55, 0.5),
+    0 0 70px rgba(212, 175, 55, 0.3);
+}
+
+.ge-spin-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.ge-spin-btn.loading {
+  pointer-events: none;
+}
+
+/* ========================================
+   RESULT DISPLAY
+======================================== */
+.ge-spin-result {
+  display: none;
+  text-align: center;
+  margin-top: 30px;
+  padding: 25px;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(212, 175, 55, 0.05));
+  border-radius: 16px;
+  border: 2px solid #D4AF37;
+}
+
+.ge-spin-result.show {
+  display: block;
+  animation: ge-result-reveal 0.5s ease-out;
+}
+
+@keyframes ge-result-reveal {
+  0% { opacity: 0; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.ge-spin-result-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+.ge-spin-result-discount {
+  font-size: 3rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #D4AF37 0%, #F5E7A3 50%, #D4AF37 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: ge-result-pulse 1s ease-in-out infinite;
+}
+
+@keyframes ge-result-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.ge-spin-result-message {
+  color: #888;
+  font-size: 0.9rem;
+  margin-top: 10px;
+}
+
+.ge-spin-result-code {
+  display: inline-block;
+  background: #D4AF37;
+  color: #0a0a0a;
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-top: 15px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.ge-spin-result-code:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 20px rgba(212, 175, 55, 0.4);
+}
+
+.ge-spin-result-code.copied::after {
+  content: ' ✓';
+}
+
+.ge-spin-result-expiry {
+  color: #666;
+  font-size: 0.8rem;
+  margin-top: 10px;
+}
+
+/* ========================================
+   LOSE STATE
+======================================== */
+.ge-spin-result.lose .ge-spin-result-title {
+  color: #ea5455;
+}
+
+.ge-spin-result.lose .ge-spin-result-discount {
+  background: linear-gradient(135deg, #ea5455, #ff6b6b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 2rem;
+}
+
+/* ========================================
+   CONFETTI
+======================================== */
+.ge-confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ge-confetti.active {
+  animation: ge-confetti-fall 3s ease-out forwards;
+}
+
+@keyframes ge-confetti-fall {
+  0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+  100% { opacity: 0; transform: translateY(400px) rotate(720deg); }
+}
+
+/* ========================================
+   FLOATING PARTICLES
+======================================== */
+.ge-wheel-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ge-wheel-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #D4AF37;
+  border-radius: 50%;
+  animation: ge-particle-float 3s ease-in-out infinite;
+  opacity: 0.6;
+}
+
+@keyframes ge-particle-float {
+  0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+  50% { transform: translateY(-20px) translateX(10px); opacity: 0.8; }
+}
+
+/* ========================================
+   COOLDOWN STATE
+======================================== */
+.ge-cooldown-message {
+  text-align: center;
+  padding: 20px;
+  color: #888;
+}
+
+.ge-cooldown-timer {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #D4AF37;
+  margin: 10px 0;
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+@media (max-width: 640px) {
+  .ge-spin-wheel-modal {
+    padding: 25px;
+    margin: 15px;
+  }
+
+  .ge-spin-wheel-title {
+    font-size: 1.8rem;
+  }
+
+  .ge-wheel-wrapper {
+    width: 260px;
+    height: 260px;
+  }
+
+  .ge-wheel-center {
+    width: 60px;
+    height: 60px;
+    font-size: 0.7rem;
+  }
+
+  .ge-spin-btn {
+    padding: 15px 30px;
+    font-size: 1rem;
+  }
+
+  .ge-spin-result-discount {
+    font-size: 2.5rem;
+  }
+}
+

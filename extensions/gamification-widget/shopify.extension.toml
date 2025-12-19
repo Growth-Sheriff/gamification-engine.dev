@@ -1,14 +1,24 @@
 api_version = "2025-10"
 
 [[extensions]]
-
 uid = "d41d22c4-c789-3de8-38fe-59f133bfe0b2c7f67498"
-
 type = "theme"
 name = "Gamification Widget"
 handle = "gamification-widget"
 
-  [[extensions.targeting]]
-  target = "body"
-  template = ["index", "product", "collection", "cart"]
+[[extensions.targeting]]
+target = "body"
+template = ["index", "product", "collection", "cart", "page"]
+
+# Spin Wheel Block
+[[extensions.blocks]]
+type = "spin-wheel"
+name = "Spin Wheel"
+target = "body"
+
+# Main Popup Block
+[[extensions.blocks]]
+type = "gamification-popup"
+name = "Gamification Popup"
+target = "section"
 
