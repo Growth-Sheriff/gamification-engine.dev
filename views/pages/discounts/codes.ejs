@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kodlar - Gamification Engine</title>
+  <title>Indirim Kodlari - Gamification Engine</title>
   <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
@@ -17,40 +17,248 @@
         <%- include('../../partials/navbar') %>
         <div class="content-wrapper">
           <div class="container-xxl flex-grow-1 container-p-y">
+
+            <!-- Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
-              <h4><i class="ti ti-tag me-2"></i>Indirim Kodlari</h4>
-              <button class="btn btn-outline-secondary"><i class="ti ti-download me-1"></i>Disa Aktar</button>
+              <div>
+                <h4 class="mb-1"><i class="ti ti-tag me-2"></i>Indirim Kodlari</h4>
+                <p class="text-muted mb-0">Olusturulan tum indirim kodlari</p>
+              </div>
+              <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary" onclick="exportCodes()">
+                  <i class="ti ti-download me-1"></i>CSV Indir
+                </button>
+              </div>
             </div>
-            <div class="card">
+
+            <!-- Stats -->
+            <div class="row g-4 mb-4">
+              <div class="col-sm-6 col-xl-3">
+                <div class="card stats-card">
+                  <div class="stats-icon" style="background: rgba(115, 103, 240, 0.12);">
+                    <i class="ti ti-tag" style="color: #7367f0;"></i>
+                  </div>
+                  <div class="stats-value"><%= typeof stats !== 'undefined' ? stats.totalCodes : 0 %></div>
+                  <div class="stats-label">Toplam Kod</div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-xl-3">
+                <div class="card stats-card">
+                  <div class="stats-icon" style="background: rgba(40, 199, 111, 0.12);">
+                    <i class="ti ti-check" style="color: #28c76f;"></i>
+                  </div>
+                  <div class="stats-value"><%= typeof stats !== 'undefined' ? stats.usedCodes : 0 %></div>
+                  <div class="stats-label">Kullanilan</div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-xl-3">
+                <div class="card stats-card">
+                  <div class="stats-icon" style="background: rgba(255, 159, 67, 0.12);">
+                    <i class="ti ti-clock" style="color: #ff9f43;"></i>
+                  </div>
+                  <div class="stats-value"><%= typeof stats !== 'undefined' ? stats.pendingCodes : 0 %></div>
+                  <div class="stats-label">Bekleyen</div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-xl-3">
+                <div class="card stats-card">
+                  <div class="stats-icon" style="background: rgba(234, 84, 85, 0.12);">
+                    <i class="ti ti-x" style="color: #ea5455;"></i>
+                  </div>
+                  <div class="stats-value"><%= typeof stats !== 'undefined' ? stats.expiredCodes : 0 %></div>
+                  <div class="stats-label">Suresi Dolmus</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card mb-4">
               <div class="card-body">
+                <div class="row g-3 align-items-end">
+                  <div class="col-md-3">
+                    <label class="form-label">Durum</label>
+                    <select class="form-select" id="filterStatus" onchange="applyFilters()">
+                      <option value="">Tumu</option>
+                      <option value="CREATED">Olusturuldu</option>
+                      <option value="USED">Kullanildi</option>
+                      <option value="EXPIRED">Suresi Doldu</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label">Indirim Tipi</label>
+                    <select class="form-select" id="filterType" onchange="applyFilters()">
+                      <option value="">Tumu</option>
+                      <option value="PERCENTAGE">Yuzde</option>
+                      <option value="FIXED_AMOUNT">Sabit</option>
+                      <option value="FREE_SHIPPING">Ucretsiz Kargo</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Ara</label>
+                    <input type="text" class="form-control" id="filterSearch" placeholder="Kod ara..." oninput="applyFilters()">
+                  </div>
+                  <div class="col-md-2">
+                    <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                      <i class="ti ti-x me-1"></i>Temizle
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Table -->
+            <div class="card">
+              <div class="card-body p-0">
                 <div class="table-responsive">
-                  <table class="table table-modern">
-                    <thead><tr><th>Kod</th><th>Indirim</th><th>Durum</th><th>Tarih</th></tr></thead>
-                    <tbody>
+                  <table class="table table-modern mb-0">
+                    <thead>
+                      <tr>
+                        <th>Kod</th>
+                        <th>Indirim</th>
+                        <th>Ziyaretci</th>
+                        <th>Durum</th>
+                        <th>Olusturma</th>
+                        <th>Son Kullanim</th>
+                        <th>Islem</th>
+                      </tr>
+                    </thead>
+                    <tbody id="codesTable">
                       <% if (typeof discounts !== 'undefined' && discounts && discounts.length > 0) { %>
                         <% discounts.forEach(function(d) { %>
-                          <tr>
-                            <td><code><%= d.code %></code></td>
-                            <td><%= d.type === 'PERCENTAGE' ? '%' + d.value : d.value + ' TL' %></td>
-                            <td><span class="badge <%= d.status === 'ACTIVE' ? 'bg-success' : d.status === 'USED' ? 'bg-primary' : 'bg-secondary' %>"><%= d.status %></span></td>
-                            <td><%= new Date(d.createdAt).toLocaleDateString('tr-TR') %></td>
+                          <tr data-status="<%= d.status %>" data-type="<%= d.type %>" data-code="<%= d.code.toLowerCase() %>">
+                            <td>
+                              <code class="text-primary fw-bold"><%= d.code %></code>
+                              <button class="btn btn-sm btn-link p-0 ms-1" onclick="copyCode('<%= d.code %>')">
+                                <i class="ti ti-copy"></i>
+                              </button>
+                            </td>
+                            <td>
+                              <span class="badge bg-label-<%= d.type === 'PERCENTAGE' ? 'primary' : d.type === 'FREE_SHIPPING' ? 'info' : 'warning' %>">
+                                <%= d.type === 'PERCENTAGE' ? '%' + d.value : d.type === 'FREE_SHIPPING' ? 'Ucretsiz Kargo' : d.value + ' TL' %>
+                              </span>
+                            </td>
+                            <td>
+                              <% if (d.visitor) { %>
+                                <span class="text-truncate" style="max-width: 120px; display: inline-block;">
+                                  <%= d.visitor.email || d.visitor.fingerprint.substring(0, 10) + '...' %>
+                                </span>
+                              <% } else { %>
+                                <span class="text-muted">-</span>
+                              <% } %>
+                            </td>
+                            <td>
+                              <span class="badge badge-soft <%= d.status === 'CREATED' ? 'badge-soft-warning' : d.status === 'USED' ? 'badge-soft-success' : 'badge-soft-secondary' %>">
+                                <i class="ti ti-<%= d.status === 'CREATED' ? 'clock' : d.status === 'USED' ? 'check' : 'x' %> me-1"></i>
+                                <%= d.status === 'CREATED' ? 'Bekliyor' : d.status === 'USED' ? 'Kullanildi' : 'Suresi Doldu' %>
+                              </span>
+                            </td>
+                            <td>
+                              <small><%= new Date(d.createdAt).toLocaleDateString('tr-TR') %></small>
+                            </td>
+                            <td>
+                              <small><%= new Date(d.expiresAt).toLocaleDateString('tr-TR') %></small>
+                              <% if (new Date(d.expiresAt) < new Date() && d.status !== 'USED') { %>
+                                <span class="badge bg-danger ms-1">Suresi Doldu</span>
+                              <% } %>
+                            </td>
+                            <td>
+                              <div class="dropdown">
+                                <button class="btn btn-sm btn-icon btn-outline-secondary" data-bs-toggle="dropdown">
+                                  <i class="ti ti-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                  <li><a class="dropdown-item" href="#" onclick="copyCode('<%= d.code %>')"><i class="ti ti-copy me-2"></i>Kopyala</a></li>
+                                  <li><hr class="dropdown-divider"></li>
+                                  <li><a class="dropdown-item text-danger" href="#" data-delete="/api/discounts/<%= d.id %>" data-reload="true"><i class="ti ti-trash me-2"></i>Sil</a></li>
+                                </ul>
+                              </div>
+                            </td>
                           </tr>
                         <% }); %>
                       <% } else { %>
-                        <tr><td colspan="4" class="text-center py-4 text-muted">Kod yok</td></tr>
+                        <tr id="emptyRow">
+                          <td colspan="7" class="text-center py-5">
+                            <i class="ti ti-tag-off mb-3" style="font-size: 3rem; color: #ccc;"></i>
+                            <p class="text-muted mb-0">Henuz indirim kodu olusturulmadi</p>
+                            <small class="text-muted">Ziyaretciler oyun oynadiginda kodlar burada gorunecek</small>
+                          </td>
+                        </tr>
                       <% } %>
                     </tbody>
                   </table>
                 </div>
               </div>
             </div>
+
           </div>
           <%- include('../../partials/footer') %>
         </div>
       </div>
     </div>
   </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/assets/js/menu.js"></script>
+  <script src="/assets/js/app.js"></script>
+  <script>
+    function copyCode(code) {
+      navigator.clipboard.writeText(code);
+      showToast('Kod kopyalandi: ' + code, 'success');
+    }
+
+    function applyFilters() {
+      const status = document.getElementById('filterStatus').value;
+      const type = document.getElementById('filterType').value;
+      const search = document.getElementById('filterSearch').value.toLowerCase();
+
+      document.querySelectorAll('#codesTable tr:not(#emptyRow)').forEach(row => {
+        const rowStatus = row.dataset.status;
+        const rowType = row.dataset.type;
+        const rowCode = row.dataset.code;
+
+        const matchStatus = !status || rowStatus === status;
+        const matchType = !type || rowType === type;
+        const matchSearch = !search || rowCode.includes(search);
+
+        row.style.display = matchStatus && matchType && matchSearch ? '' : 'none';
+      });
+    }
+
+    function clearFilters() {
+      document.getElementById('filterStatus').value = '';
+      document.getElementById('filterType').value = '';
+      document.getElementById('filterSearch').value = '';
+      applyFilters();
+    }
+
+    function exportCodes() {
+      const rows = [['Kod', 'Tip', 'Deger', 'Durum', 'Olusturma', 'Son Kullanim']];
+
+      document.querySelectorAll('#codesTable tr:not(#emptyRow)').forEach(row => {
+        if (row.style.display !== 'none') {
+          const cells = row.querySelectorAll('td');
+          rows.push([
+            cells[0].querySelector('code').textContent,
+            row.dataset.type,
+            cells[1].textContent.trim(),
+            row.dataset.status,
+            cells[4].textContent.trim(),
+            cells[5].textContent.trim().split('\n')[0]
+          ]);
+        }
+      });
+
+      const csv = rows.map(r => r.join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'indirim-kodlari.csv';
+      a.click();
+
+      showToast('CSV indirildi!', 'success');
+    }
+  </script>
 </body>
 </html>
+

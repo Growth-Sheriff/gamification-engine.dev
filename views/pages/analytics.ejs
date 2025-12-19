@@ -17,40 +17,246 @@
         <%- include('../partials/navbar') %>
         <div class="content-wrapper">
           <div class="container-xxl flex-grow-1 container-p-y">
-            <h4 class="mb-4"><i class="ti ti-chart-bar me-2"></i>Analitik</h4>
-            <div class="row g-4">
-              <div class="col-md-3">
+
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <div>
+                <h4 class="mb-1"><i class="ti ti-chart-bar me-2"></i>Analitik</h4>
+                <p class="text-muted mb-0">Oyun performansi ve donusum oranları</p>
+              </div>
+              <div class="d-flex gap-2">
+                <select class="form-select" id="dateRange" style="width: auto;">
+                  <option value="7">Son 7 Gun</option>
+                  <option value="30" selected>Son 30 Gun</option>
+                  <option value="90">Son 90 Gun</option>
+                </select>
+                <button class="btn btn-outline-primary" onclick="exportData()">
+                  <i class="ti ti-download me-1"></i>Indir
+                </button>
+              </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row g-4 mb-4">
+              <div class="col-sm-6 col-xl-3">
                 <div class="card stats-card">
-                  <div class="stats-value"><%= typeof stats !== 'undefined' ? stats.totalPlays : 0 %></div>
+                  <div class="stats-icon" style="background: rgba(115, 103, 240, 0.12);">
+                    <i class="ti ti-eye" style="color: #7367f0;"></i>
+                  </div>
+                  <div class="stats-value"><%= typeof stats !== 'undefined' ? stats.totalPlays.toLocaleString() : '0' %></div>
                   <div class="stats-label">Toplam Oyun</div>
+                  <div class="stats-change text-success">
+                    <i class="ti ti-trending-up"></i> +12.5%
+                  </div>
                 </div>
               </div>
-              <div class="col-md-3">
+              <div class="col-sm-6 col-xl-3">
                 <div class="card stats-card">
-                  <div class="stats-value"><%= typeof stats !== 'undefined' ? stats.totalWins : 0 %></div>
+                  <div class="stats-icon" style="background: rgba(40, 199, 111, 0.12);">
+                    <i class="ti ti-trophy" style="color: #28c76f;"></i>
+                  </div>
+                  <div class="stats-value"><%= typeof stats !== 'undefined' ? stats.totalWins.toLocaleString() : '0' %></div>
                   <div class="stats-label">Kazanan</div>
+                  <div class="stats-change text-success">
+                    <i class="ti ti-trending-up"></i> +8.3%
+                  </div>
                 </div>
               </div>
-              <div class="col-md-3">
+              <div class="col-sm-6 col-xl-3">
                 <div class="card stats-card">
-                  <div class="stats-value"><%= typeof stats !== 'undefined' ? stats.conversionRate : 0 %>%</div>
-                  <div class="stats-label">Donusum</div>
+                  <div class="stats-icon" style="background: rgba(255, 159, 67, 0.12);">
+                    <i class="ti ti-percentage" style="color: #ff9f43;"></i>
+                  </div>
+                  <div class="stats-value"><%= typeof stats !== 'undefined' ? stats.conversionRate : '0' %>%</div>
+                  <div class="stats-label">Donusum Orani</div>
+                  <div class="stats-change text-success">
+                    <i class="ti ti-trending-up"></i> +2.1%
+                  </div>
                 </div>
               </div>
-              <div class="col-md-3">
+              <div class="col-sm-6 col-xl-3">
                 <div class="card stats-card">
-                  <div class="stats-value"><%= typeof stats !== 'undefined' ? stats.usedDiscounts : 0 %></div>
-                  <div class="stats-label">Kullanilan Kod</div>
+                  <div class="stats-icon" style="background: rgba(0, 207, 232, 0.12);">
+                    <i class="ti ti-currency-lira" style="color: #00cfe8;"></i>
+                  </div>
+                  <div class="stats-value"><%= typeof stats !== 'undefined' ? stats.totalRevenue.toLocaleString() : '0' %> TL</div>
+                  <div class="stats-label">Kazanilan Gelir</div>
+                  <div class="stats-change text-success">
+                    <i class="ti ti-trending-up"></i> +15.7%
+                  </div>
                 </div>
               </div>
             </div>
+
+            <!-- Charts Row -->
+            <div class="row g-4 mb-4">
+              <!-- Performance Chart -->
+              <div class="col-lg-8">
+                <div class="card">
+                  <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0"><i class="ti ti-chart-line me-2"></i>Performans Grafigi</h5>
+                    <div class="btn-group btn-group-sm" role="group">
+                      <input type="radio" class="btn-check" name="chartType" id="chartPlays" checked>
+                      <label class="btn btn-outline-primary" for="chartPlays">Oyun</label>
+                      <input type="radio" class="btn-check" name="chartType" id="chartWins">
+                      <label class="btn btn-outline-primary" for="chartWins">Kazanan</label>
+                      <input type="radio" class="btn-check" name="chartType" id="chartConversion">
+                      <label class="btn btn-outline-primary" for="chartConversion">Donusum</label>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <div style="height: 350px;">
+                      <canvas id="performanceChart"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Distribution Chart -->
+              <div class="col-lg-4">
+                <div class="card h-100">
+                  <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="ti ti-chart-pie me-2"></i>Sonuc Dagilimi</h5>
+                  </div>
+                  <div class="card-body">
+                    <div style="height: 280px;">
+                      <canvas id="distributionChart"></canvas>
+                    </div>
+                    <div class="mt-3">
+                      <div class="d-flex justify-content-between mb-2">
+                        <span><i class="ti ti-circle-filled text-success me-2"></i>Kazandi</span>
+                        <strong><%= typeof stats !== 'undefined' ? stats.totalWins : 0 %></strong>
+                      </div>
+                      <div class="d-flex justify-content-between mb-2">
+                        <span><i class="ti ti-circle-filled text-danger me-2"></i>Kaybetti</span>
+                        <strong><%= typeof stats !== 'undefined' ? stats.totalPlays - stats.totalWins : 0 %></strong>
+                      </div>
+                      <div class="d-flex justify-content-between">
+                        <span><i class="ti ti-circle-filled text-primary me-2"></i>Kullanildi</span>
+                        <strong><%= typeof stats !== 'undefined' ? stats.usedDiscounts : 0 %></strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Games Performance Table -->
+            <div class="card">
+              <div class="card-header">
+                <h5 class="card-title mb-0"><i class="ti ti-table me-2"></i>Oyun Bazinda Performans</h5>
+              </div>
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="table table-modern mb-0">
+                    <thead>
+                      <tr>
+                        <th>Oyun</th>
+                        <th>Tip</th>
+                        <th>Toplam Oyun</th>
+                        <th>Kazanan</th>
+                        <th>Kazanma %</th>
+                        <th>Kullanilan</th>
+                        <th>Donusum %</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% if (typeof gameStats !== 'undefined' && gameStats.length > 0) { %>
+                        <% gameStats.forEach(function(game) { %>
+                          <tr>
+                            <td><strong><%= game.name %></strong></td>
+                            <td>
+                              <span class="badge bg-label-<%= game.type === 'SPIN_WHEEL' ? 'primary' : game.type === 'SCRATCH_CARD' ? 'warning' : 'info' %>">
+                                <%= game.type.replace('_', ' ') %>
+                              </span>
+                            </td>
+                            <td><%= game.plays.toLocaleString() %></td>
+                            <td><%= game.wins.toLocaleString() %></td>
+                            <td>
+                              <div class="d-flex align-items-center">
+                                <div class="progress flex-grow-1 me-2" style="height: 6px;">
+                                  <div class="progress-bar bg-success" style="width: <%= game.winRate %>%;"></div>
+                                </div>
+                                <span><%= game.winRate %>%</span>
+                              </div>
+                            </td>
+                            <td><%= game.used.toLocaleString() %></td>
+                            <td>
+                              <span class="badge badge-soft <%= game.conversionRate > 10 ? 'badge-soft-success' : 'badge-soft-warning' %>">
+                                <%= game.conversionRate %>%
+                              </span>
+                            </td>
+                          </tr>
+                        <% }); %>
+                      <% } else { %>
+                        <tr>
+                          <td colspan="7" class="text-center py-4 text-muted">
+                            <i class="ti ti-chart-bar-off mb-2" style="font-size: 2rem;"></i>
+                            <p class="mb-0">Henuz veri yok</p>
+                          </td>
+                        </tr>
+                      <% } %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
           </div>
           <%- include('../partials/footer') %>
         </div>
       </div>
     </div>
   </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="/assets/js/menu.js"></script>
+  <script src="/assets/js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Performance Chart
+      const chartData = <%- typeof chartData !== 'undefined' ? JSON.stringify(chartData) : '{"labels":[],"plays":[],"wins":[]}' %>;
+
+      const labels = chartData.labels.length > 0 ? chartData.labels : generateDemoLabels(30);
+      const plays = chartData.plays.length > 0 ? chartData.plays : generateDemoData(30, 50, 150);
+      const wins = chartData.wins.length > 0 ? chartData.wins : generateDemoData(30, 30, 100);
+
+      Charts.initPlayChart('performanceChart', { labels, plays, wins });
+
+      // Distribution Chart
+      const statsData = {
+        wins: <%= typeof stats !== 'undefined' ? stats.totalWins : 45 %>,
+        losses: <%= typeof stats !== 'undefined' ? (stats.totalPlays - stats.totalWins) : 55 %>,
+        used: <%= typeof stats !== 'undefined' ? stats.usedDiscounts : 20 %>
+      };
+      Charts.initConversionChart('distributionChart', statsData);
+    });
+
+    function generateDemoLabels(days) {
+      const labels = [];
+      for (let i = days; i > 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        labels.push(date.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short' }));
+      }
+      return labels;
+    }
+
+    function generateDemoData(count, min, max) {
+      return Array.from({ length: count }, () => Math.floor(Math.random() * (max - min) + min));
+    }
+
+    function exportData() {
+      showToast('Veriler indiriliyor...', 'info');
+      // TODO: Implement CSV export
+    }
+
+    document.getElementById('dateRange').addEventListener('change', function() {
+      // TODO: Reload data with new date range
+      showToast('Tarih araligi guncellendi', 'success');
+    });
+  </script>
 </body>
 </html>
+

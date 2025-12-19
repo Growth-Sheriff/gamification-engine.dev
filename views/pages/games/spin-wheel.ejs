@@ -8,6 +8,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
   <link rel="stylesheet" href="/assets/css/core.css" />
+  <style>
+    .segment-item { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-soft); padding: 1rem; margin-bottom: 0.75rem; }
+    .segment-item:hover { box-shadow: var(--shadow-soft); }
+    .segment-color { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px #ddd; }
+    .wheel-preview { width: 280px; height: 280px; margin: 0 auto; }
+    .wheel-canvas { width: 100%; height: 100%; }
+    .trigger-options label { cursor: pointer; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-soft); margin-right: 0.5rem; margin-bottom: 0.5rem; display: inline-flex; align-items: center; gap: 0.5rem; }
+    .trigger-options input:checked + label { border-color: var(--primary); background: rgba(115, 103, 240, 0.1); }
+    .trigger-options input { display: none; }
+  </style>
 </head>
 <body>
   <div class="layout-wrapper layout-content-navbar">
@@ -17,46 +27,330 @@
         <%- include('../../partials/navbar') %>
         <div class="content-wrapper">
           <div class="container-xxl flex-grow-1 container-p-y">
+
+            <!-- Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
-              <h4><i class="ti ti-rotate-clockwise me-2"></i>Spin Wheel</h4>
-              <button class="btn btn-primary"><i class="ti ti-device-floppy me-1"></i>Kaydet</button>
+              <div>
+                <h4 class="mb-1"><i class="ti ti-rotate-clockwise me-2"></i>Spin Wheel</h4>
+                <p class="text-muted mb-0">Sans carki ayarlari</p>
+              </div>
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-secondary" onclick="testSpin()">
+                  <i class="ti ti-player-play me-1"></i>Test Et
+                </button>
+                <button type="button" class="btn btn-primary" onclick="saveGame()">
+                  <i class="ti ti-device-floppy me-1"></i>Kaydet
+                </button>
+              </div>
             </div>
+
             <div class="row g-4">
-              <div class="col-lg-6">
-                <div class="card">
-                  <div class="card-header"><h5 class="mb-0">Ayarlar</h5></div>
+              <!-- Sol Panel: Ayarlar -->
+              <div class="col-lg-7">
+                <!-- Genel Ayarlar -->
+                <div class="card mb-4">
+                  <div class="card-header">
+                    <h5 class="mb-0"><i class="ti ti-settings me-2"></i>Genel Ayarlar</h5>
+                  </div>
                   <div class="card-body">
-                    <div class="mb-3">
-                      <label class="form-label">Oyun Adi</label>
-                      <input type="text" class="form-control" value="<%= typeof game !== 'undefined' && game ? game.name : 'Sansli Cark' %>">
-                    </div>
-                    <div class="mb-3">
-                      <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" <%= typeof game !== 'undefined' && game && game.isActive ? 'checked' : '' %>>
-                        <label class="form-check-label">Aktif</label>
+                    <div class="row g-3">
+                      <div class="col-md-8">
+                        <label class="form-label">Oyun Adi</label>
+                        <input type="text" class="form-control" id="gameName" value="<%= typeof game !== 'undefined' && game ? game.name : 'Sansli Cark' %>">
+                      </div>
+                      <div class="col-md-4">
+                        <label class="form-label">Durum</label>
+                        <div class="form-check form-switch mt-2">
+                          <input class="form-check-input" type="checkbox" id="gameActive" <%= typeof game !== 'undefined' && game && game.isActive ? 'checked' : '' %>>
+                          <label class="form-check-label" for="gameActive">Aktif</label>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              <div class="col-lg-6">
+
+                <!-- Tetikleyici -->
+                <div class="card mb-4">
+                  <div class="card-header">
+                    <h5 class="mb-0"><i class="ti ti-click me-2"></i>Tetikleyici</h5>
+                  </div>
+                  <div class="card-body">
+                    <div class="trigger-options mb-3">
+                      <input type="radio" name="trigger" id="triggerTime" value="TIME_ON_PAGE" <%= typeof game === 'undefined' || !game || game.trigger === 'TIME_ON_PAGE' ? 'checked' : '' %>>
+                      <label for="triggerTime"><i class="ti ti-clock"></i> Zaman</label>
+
+                      <input type="radio" name="trigger" id="triggerScroll" value="SCROLL_DEPTH" <%= typeof game !== 'undefined' && game && game.trigger === 'SCROLL_DEPTH' ? 'checked' : '' %>>
+                      <label for="triggerScroll"><i class="ti ti-arrow-down"></i> Scroll</label>
+
+                      <input type="radio" name="trigger" id="triggerExit" value="EXIT_INTENT" <%= typeof game !== 'undefined' && game && game.trigger === 'EXIT_INTENT' ? 'checked' : '' %>>
+                      <label for="triggerExit"><i class="ti ti-logout"></i> Cikis Niyeti</label>
+
+                      <input type="radio" name="trigger" id="triggerLoad" value="PAGE_LOAD" <%= typeof game !== 'undefined' && game && game.trigger === 'PAGE_LOAD' ? 'checked' : '' %>>
+                      <label for="triggerLoad"><i class="ti ti-browser"></i> Sayfa Yuklendiginde</label>
+                    </div>
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label class="form-label">Deger (ms veya %)</label>
+                        <input type="number" class="form-control" id="triggerValue" value="<%= typeof game !== 'undefined' && game ? game.triggerValue : 3000 %>">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Segmentler -->
                 <div class="card">
-                  <div class="card-header"><h5 class="mb-0">Onizleme</h5></div>
+                  <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="ti ti-chart-pie me-2"></i>Cark Dilimleri</h5>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="addSegment()">
+                      <i class="ti ti-plus me-1"></i>Dilim Ekle
+                    </button>
+                  </div>
+                  <div class="card-body">
+                    <div id="segmentsList">
+                      <% if (typeof game !== 'undefined' && game && game.segments && game.segments.length > 0) { %>
+                        <% game.segments.forEach(function(seg, idx) { %>
+                          <div class="segment-item" data-id="<%= seg.id %>">
+                            <div class="d-flex align-items-center gap-3">
+                              <input type="color" class="segment-color" value="<%= seg.color %>" onchange="updatePreview()">
+                              <div class="flex-grow-1">
+                                <input type="text" class="form-control form-control-sm mb-2" value="<%= seg.label %>" placeholder="Etiket" onchange="updatePreview()">
+                                <div class="row g-2">
+                                  <div class="col-5">
+                                    <select class="form-select form-select-sm">
+                                      <option value="PERCENTAGE" <%= seg.type === 'PERCENTAGE' ? 'selected' : '' %>>% Indirim</option>
+                                      <option value="FIXED_AMOUNT" <%= seg.type === 'FIXED_AMOUNT' ? 'selected' : '' %>>Sabit Tutar</option>
+                                      <option value="FREE_SHIPPING" <%= seg.type === 'FREE_SHIPPING' ? 'selected' : '' %>>Ucretsiz Kargo</option>
+                                      <option value="NO_PRIZE" <%= seg.type === 'NO_PRIZE' ? 'selected' : '' %>>Odul Yok</option>
+                                    </select>
+                                  </div>
+                                  <div class="col-3">
+                                    <input type="number" class="form-control form-control-sm" value="<%= seg.value %>" placeholder="Deger">
+                                  </div>
+                                  <div class="col-3">
+                                    <input type="number" class="form-control form-control-sm" value="<%= Math.round(seg.probability * 100) %>" placeholder="%" title="Olasilik %">
+                                  </div>
+                                  <div class="col-1">
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSegment(this)">
+                                      <i class="ti ti-trash"></i>
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        <% }); %>
+                      <% } else { %>
+                        <!-- Default segments -->
+                        <div class="segment-item">
+                          <div class="d-flex align-items-center gap-3">
+                            <input type="color" class="segment-color" value="#7367f0" onchange="updatePreview()">
+                            <div class="flex-grow-1">
+                              <input type="text" class="form-control form-control-sm mb-2" value="%10 Indirim" placeholder="Etiket" onchange="updatePreview()">
+                              <div class="row g-2">
+                                <div class="col-5">
+                                  <select class="form-select form-select-sm">
+                                    <option value="PERCENTAGE" selected>% Indirim</option>
+                                    <option value="FIXED_AMOUNT">Sabit Tutar</option>
+                                    <option value="FREE_SHIPPING">Ucretsiz Kargo</option>
+                                    <option value="NO_PRIZE">Odul Yok</option>
+                                  </select>
+                                </div>
+                                <div class="col-3"><input type="number" class="form-control form-control-sm" value="10" placeholder="Deger"></div>
+                                <div class="col-3"><input type="number" class="form-control form-control-sm" value="25" placeholder="%" title="Olasilik %"></div>
+                                <div class="col-1"><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSegment(this)"><i class="ti ti-trash"></i></button></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="segment-item">
+                          <div class="d-flex align-items-center gap-3">
+                            <input type="color" class="segment-color" value="#28c76f" onchange="updatePreview()">
+                            <div class="flex-grow-1">
+                              <input type="text" class="form-control form-control-sm mb-2" value="Ucretsiz Kargo" placeholder="Etiket" onchange="updatePreview()">
+                              <div class="row g-2">
+                                <div class="col-5"><select class="form-select form-select-sm"><option value="PERCENTAGE">% Indirim</option><option value="FIXED_AMOUNT">Sabit Tutar</option><option value="FREE_SHIPPING" selected>Ucretsiz Kargo</option><option value="NO_PRIZE">Odul Yok</option></select></div>
+                                <div class="col-3"><input type="number" class="form-control form-control-sm" value="0" placeholder="Deger"></div>
+                                <div class="col-3"><input type="number" class="form-control form-control-sm" value="15" placeholder="%" title="Olasilik %"></div>
+                                <div class="col-1"><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSegment(this)"><i class="ti ti-trash"></i></button></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="segment-item">
+                          <div class="d-flex align-items-center gap-3">
+                            <input type="color" class="segment-color" value="#ea5455" onchange="updatePreview()">
+                            <div class="flex-grow-1">
+                              <input type="text" class="form-control form-control-sm mb-2" value="Sansli Degilsin" placeholder="Etiket" onchange="updatePreview()">
+                              <div class="row g-2">
+                                <div class="col-5"><select class="form-select form-select-sm"><option value="PERCENTAGE">% Indirim</option><option value="FIXED_AMOUNT">Sabit Tutar</option><option value="FREE_SHIPPING">Ucretsiz Kargo</option><option value="NO_PRIZE" selected>Odul Yok</option></select></div>
+                                <div class="col-3"><input type="number" class="form-control form-control-sm" value="0" placeholder="Deger"></div>
+                                <div class="col-3"><input type="number" class="form-control form-control-sm" value="30" placeholder="%" title="Olasilik %"></div>
+                                <div class="col-1"><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSegment(this)"><i class="ti ti-trash"></i></button></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="segment-item">
+                          <div class="d-flex align-items-center gap-3">
+                            <input type="color" class="segment-color" value="#ff9f43" onchange="updatePreview()">
+                            <div class="flex-grow-1">
+                              <input type="text" class="form-control form-control-sm mb-2" value="%20 Indirim" placeholder="Etiket" onchange="updatePreview()">
+                              <div class="row g-2">
+                                <div class="col-5"><select class="form-select form-select-sm"><option value="PERCENTAGE" selected>% Indirim</option><option value="FIXED_AMOUNT">Sabit Tutar</option><option value="FREE_SHIPPING">Ucretsiz Kargo</option><option value="NO_PRIZE">Odul Yok</option></select></div>
+                                <div class="col-3"><input type="number" class="form-control form-control-sm" value="20" placeholder="Deger"></div>
+                                <div class="col-3"><input type="number" class="form-control form-control-sm" value="10" placeholder="%" title="Olasilik %"></div>
+                                <div class="col-1"><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSegment(this)"><i class="ti ti-trash"></i></button></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      <% } %>
+                    </div>
+                    <div class="alert alert-soft-info mt-3 mb-0">
+                      <i class="ti ti-info-circle me-2"></i>
+                      <small>Olasiliklarin toplami 100 olmali. Mevcut: <strong id="totalProbability">100</strong>%</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sag Panel: Onizleme -->
+              <div class="col-lg-5">
+                <div class="card position-sticky" style="top: 1rem;">
+                  <div class="card-header">
+                    <h5 class="mb-0"><i class="ti ti-eye me-2"></i>Onizleme</h5>
+                  </div>
                   <div class="card-body text-center">
-                    <div style="width:200px;height:200px;margin:0 auto;background:#f8f9fa;border-radius:50%;display:flex;align-items:center;justify-content:center;">
-                      <span class="text-muted">Cark</span>
+                    <div class="wheel-preview mb-4">
+                      <canvas id="wheelCanvas" width="280" height="280" class="wheel-canvas"></canvas>
+                    </div>
+                    <div class="d-flex justify-content-center gap-2">
+                      <button type="button" class="btn btn-outline-primary" onclick="testSpin()">
+                        <i class="ti ti-player-play me-1"></i>Cevir
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
+
           </div>
           <%- include('../../partials/footer') %>
         </div>
       </div>
     </div>
   </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/assets/js/menu.js"></script>
+  <script src="/assets/js/app.js"></script>
+  <script>
+    const gameId = '<%= typeof game !== "undefined" && game ? game.id : "" %>';
+
+    // Initialize preview on load
+    document.addEventListener('DOMContentLoaded', function() {
+      updatePreview();
+    });
+
+    function getSegmentsFromUI() {
+      const segments = [];
+      document.querySelectorAll('.segment-item').forEach(item => {
+        const color = item.querySelector('.segment-color').value;
+        const label = item.querySelector('input[type="text"]').value;
+        const type = item.querySelector('select').value;
+        const value = parseFloat(item.querySelectorAll('input[type="number"]')[0].value) || 0;
+        const probability = parseFloat(item.querySelectorAll('input[type="number"]')[1].value) / 100 || 0;
+
+        segments.push({ color, label, type, value, probability });
+      });
+      return segments;
+    }
+
+    function updatePreview() {
+      const segments = getSegmentsFromUI();
+      SpinWheelPreview.init('wheelCanvas', segments);
+
+      // Update total probability
+      const total = segments.reduce((sum, s) => sum + (s.probability * 100), 0);
+      document.getElementById('totalProbability').textContent = Math.round(total);
+      document.getElementById('totalProbability').className = Math.abs(total - 100) < 1 ? 'text-success' : 'text-danger';
+    }
+
+    function addSegment() {
+      const colors = ['#7367f0', '#28c76f', '#ff9f43', '#ea5455', '#00cfe8', '#4b4b4b'];
+      const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+      const html = `
+        <div class="segment-item">
+          <div class="d-flex align-items-center gap-3">
+            <input type="color" class="segment-color" value="${randomColor}" onchange="updatePreview()">
+            <div class="flex-grow-1">
+              <input type="text" class="form-control form-control-sm mb-2" value="Yeni Dilim" placeholder="Etiket" onchange="updatePreview()">
+              <div class="row g-2">
+                <div class="col-5">
+                  <select class="form-select form-select-sm">
+                    <option value="PERCENTAGE">% Indirim</option>
+                    <option value="FIXED_AMOUNT">Sabit Tutar</option>
+                    <option value="FREE_SHIPPING">Ucretsiz Kargo</option>
+                    <option value="NO_PRIZE">Odul Yok</option>
+                  </select>
+                </div>
+                <div class="col-3"><input type="number" class="form-control form-control-sm" value="10" placeholder="Deger"></div>
+                <div class="col-3"><input type="number" class="form-control form-control-sm" value="10" placeholder="%" title="Olasilik %"></div>
+                <div class="col-1"><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSegment(this)"><i class="ti ti-trash"></i></button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('segmentsList').insertAdjacentHTML('beforeend', html);
+      updatePreview();
+    }
+
+    function removeSegment(btn) {
+      if (document.querySelectorAll('.segment-item').length <= 2) {
+        showToast('En az 2 dilim olmali!', 'warning');
+        return;
+      }
+      btn.closest('.segment-item').remove();
+      updatePreview();
+    }
+
+    function testSpin() {
+      const segments = getSegmentsFromUI();
+      const randomIndex = Math.floor(Math.random() * segments.length);
+      SpinWheelPreview.spin(randomIndex);
+    }
+
+    async function saveGame() {
+      const data = {
+        name: document.getElementById('gameName').value,
+        isActive: document.getElementById('gameActive').checked,
+        trigger: document.querySelector('input[name="trigger"]:checked').value,
+        triggerValue: parseInt(document.getElementById('triggerValue').value),
+        segments: getSegmentsFromUI(),
+      };
+
+      // Validate probability sum
+      const totalProb = data.segments.reduce((sum, s) => sum + s.probability, 0);
+      if (Math.abs(totalProb - 1) > 0.01) {
+        showToast('Olasiliklarin toplami 100 olmali!', 'warning');
+        return;
+      }
+
+      try {
+        if (gameId) {
+          await Games.save(gameId, 'SPIN_WHEEL', data);
+        } else {
+          await api.post('/api/games', { ...data, type: 'SPIN_WHEEL' });
+          showToast('Oyun olusturuldu!', 'success');
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  </script>
 </body>
 </html>
+

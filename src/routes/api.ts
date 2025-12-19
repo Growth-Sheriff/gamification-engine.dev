@@ -456,5 +456,211 @@ router.get('/analytics', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * Get chart data
+ * GET /api/analytics/chart
+ */
+router.get('/analytics/chart', async (req: Request, res: Response) => {
+  try {
+    const shopId = req.shop!.id;
+    const days = parseInt(req.query.days as string) || 7;
+
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    const analytics = await prisma.analytics.findMany({
+      where: {
+        shopId,
+        date: { gte: startDate },
+      },
+      orderBy: { date: 'asc' },
+    });
+
+    const labels = analytics.map(a => a.date.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short' }));
+    const plays = analytics.map(a => a.plays);
+    const wins = analytics.map(a => a.wins);
+
+    res.json({
+      success: true,
+      data: { labels, plays, wins },
+    });
+  } catch (error) {
+    console.error('Get chart data error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get chart data' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SEGMENTS API
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Add segment to game
+ * POST /api/games/:id/segments
+ */
+router.post('/games/:id/segments', async (req: Request, res: Response) => {
+  try {
+    const shopId = req.shop!.id;
+    const gameId = req.params.id;
+
+    const game = await prisma.game.findFirst({
+      where: { id: gameId, shopId },
+      include: { segments: true },
+    });
+
+    if (!game) {
+      res.status(404).json({ success: false, error: 'Game not found' });
+      return;
+    }
+
+    const { label, type, value, probability, color } = req.body;
+
+    const segment = await prisma.gameSegment.create({
+      data: {
+        gameId,
+        label,
+        type,
+        value: parseFloat(value) || 0,
+        probability: parseFloat(probability) || 0.1,
+        color: color || '#7367f0',
+        order: game.segments.length,
+      },
+    });
+
+    res.json({ success: true, data: segment });
+  } catch (error) {
+    console.error('Add segment error:', error);
+    res.status(500).json({ success: false, error: 'Failed to add segment' });
+  }
+});
+
+/**
+ * Update segment
+ * PUT /api/games/:id/segments/:segmentId
+ */
+router.put('/games/:id/segments/:segmentId', async (req: Request, res: Response) => {
+  try {
+    const shopId = req.shop!.id;
+    const { id: gameId, segmentId } = req.params;
+
+    const game = await prisma.game.findFirst({
+      where: { id: gameId, shopId },
+    });
+
+    if (!game) {
+      res.status(404).json({ success: false, error: 'Game not found' });
+      return;
+    }
+
+    const { label, type, value, probability, color } = req.body;
+
+    const segment = await prisma.gameSegment.update({
+      where: { id: segmentId },
+      data: {
+        label,
+        type,
+        value: parseFloat(value) || 0,
+        probability: parseFloat(probability) || 0.1,
+        color,
+      },
+    });
+
+    res.json({ success: true, data: segment });
+  } catch (error) {
+    console.error('Update segment error:', error);
+    res.status(500).json({ success: false, error: 'Failed to update segment' });
+  }
+});
+
+/**
+ * Delete segment
+ * DELETE /api/games/:id/segments/:segmentId
+ */
+router.delete('/games/:id/segments/:segmentId', async (req: Request, res: Response) => {
+  try {
+    const shopId = req.shop!.id;
+    const { id: gameId, segmentId } = req.params;
+
+    const game = await prisma.game.findFirst({
+      where: { id: gameId, shopId },
+    });
+
+    if (!game) {
+      res.status(404).json({ success: false, error: 'Game not found' });
+      return;
+    }
+
+    await prisma.gameSegment.delete({
+      where: { id: segmentId },
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Delete segment error:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete segment' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SETTINGS API
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Update shop settings
+ * PUT /api/settings
+ */
+router.put('/settings', async (req: Request, res: Response) => {
+  try {
+    const shopId = req.shop!.id;
+    const { name, email } = req.body;
+
+    const shop = await prisma.shop.update({
+      where: { id: shopId },
+      data: { name, email },
+    });
+
+    res.json({ success: true, data: shop });
+  } catch (error) {
+    console.error('Update settings error:', error);
+    res.status(500).json({ success: false, error: 'Failed to update settings' });
+  }
+});
+
+/**
+ * Update general settings
+ * PUT /api/settings/general
+ */
+router.put('/settings/general', async (req: Request, res: Response) => {
+  try {
+    // TODO: Store general settings in a settings table or shop config JSON
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Update general settings error:', error);
+    res.status(500).json({ success: false, error: 'Failed to update settings' });
+  }
+});
+
+/**
+ * Delete all data
+ * DELETE /api/data/all
+ */
+router.delete('/data/all', async (req: Request, res: Response) => {
+  try {
+    const shopId = req.shop!.id;
+
+    // Delete in order (due to foreign keys)
+    await prisma.discount.deleteMany({ where: { shopId } });
+    await prisma.play.deleteMany({ where: { visitor: { shopId } } });
+    await prisma.session.deleteMany({ where: { visitor: { shopId } } });
+    await prisma.visitor.deleteMany({ where: { shopId } });
+    await prisma.analytics.deleteMany({ where: { shopId } });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Delete all data error:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete data' });
+  }
+});
+
 export default router;
 
