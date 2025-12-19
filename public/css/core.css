@@ -3,6 +3,9 @@
  * 2025 Modern Soft Design
  */
 
+/* Bootstrap base */
+@import url('https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css');
+
 :root {
   --primary: #7367f0;
   --primary-light: #8a7ff5;
@@ -50,11 +53,13 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  margin-left: 260px;
 }
 
 .content-wrapper {
   flex: 1;
   padding: 1.5rem;
+  min-height: calc(100vh - 80px);
 }
 
 /* Sidebar */
@@ -119,11 +124,13 @@ body {
 .layout-navbar {
   background: var(--card-bg);
   padding: 1rem 1.5rem;
-  margin-left: 260px;
   box-shadow: var(--shadow-soft);
   position: sticky;
   top: 0;
   z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .navbar-nav-right {
@@ -526,4 +533,3 @@ body {
     margin-left: 0;
   }
 }
-

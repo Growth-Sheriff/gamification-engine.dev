@@ -42,11 +42,26 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.shopify.com"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net"],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "'unsafe-eval'",
+          "https://cdn.shopify.com",
+          "https://cdn.jsdelivr.net",
+        ],
+        styleSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "https://fonts.googleapis.com",
+          "https://cdn.jsdelivr.net",
+        ],
+        fontSrc: [
+          "'self'",
+          "https://fonts.gstatic.com",
+          "https://cdn.jsdelivr.net",
+        ],
         imgSrc: ["'self'", "data:", "https:"],
-        connectSrc: ["'self'", "https://*.myshopify.com", "https://*.shopify.com"],
+        connectSrc: ["'self'", "https://*.myshopify.com", "https://*.shopify.com", "https://cdn.jsdelivr.net"],
         frameAncestors: ["https://admin.shopify.com", "https://*.myshopify.com"],
       },
     },
