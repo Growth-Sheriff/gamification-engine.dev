@@ -36,14 +36,39 @@ const app = express();
 // Trust proxy (for Shopify App Proxy)
 app.set('trust proxy', 1);
 
-// Security headers (relaxed for Shopify iframe embedding)
+// Security headers (configured for Shopify iframe embedding)
 app.use(
   helmet({
-    contentSecurityPolicy: false, // Disabled for Shopify admin embedding
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.shopify.com"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net"],
+        imgSrc: ["'self'", "data:", "https:"],
+        connectSrc: ["'self'", "https://*.myshopify.com", "https://*.shopify.com"],
+        frameAncestors: ["https://admin.shopify.com", "https://*.myshopify.com"],
+      },
+    },
     crossOriginEmbedderPolicy: false,
     crossOriginOpenerPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    // CRITICAL: Disable X-Frame-Options for Shopify embedded apps
+    frameguard: false,
   })
 );
+
+// Additional header to allow Shopify iframe embedding
+app.use((_req, res, next) => {
+  // Remove X-Frame-Options if set (Shopify embedded apps need this)
+  res.removeHeader('X-Frame-Options');
+  // Set Content-Security-Policy frame-ancestors for Shopify
+  res.setHeader(
+    'Content-Security-Policy',
+    "frame-ancestors https://admin.shopify.com https://*.myshopify.com;"
+  );
+  next();
+});
 
 // CORS
 app.use(
