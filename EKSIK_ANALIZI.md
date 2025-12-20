@@ -24,21 +24,21 @@ Her modül için şu akışı simüle ediyorum:
 ### 📱 Frontend Simülasyonu
 | Aksiyon | Mevcut Durum | Eksik |
 |---------|--------------|-------|
-| Müşteri puan bakiyesini görür | ❌ YOK | Widget/Sayfa yok |
-| Müşteri puan kazanır (satın alma) | ❌ YOK | Shopify webhook yok |
-| Müşteri puan harcar | ❌ YOK | Checkout entegrasyonu yok |
-| Müşteri seviyesini görür | ❌ YOK | Customer metafield yok |
-| Doğum günü puanı alır | ❌ YOK | Cron job yok |
+| Müşteri puan bakiyesini görür | ✅ TAMAMLANDI | loyalty-widget.js |
+| Müşteri puan kazanır (satın alma) | ✅ TAMAMLANDI | webhooks.ts orders/paid |
+| Müşteri puan harcar | ✅ TAMAMLANDI | proxy.ts /loyalty/redeem |
+| Müşteri seviyesini görür | ✅ TAMAMLANDI | tier display widget |
+| Doğum günü puanı alır | ⏳ | Cron job bekliyor |
 
 ### 🔧 Backend Eksikleri
-| Eksik | Öncelik | Açıklama |
-|-------|---------|----------|
-| `POST /api/proxy/loyalty/balance` | 🔴 Kritik | Puan bakiyesi sorgulama |
-| `POST /api/proxy/loyalty/redeem` | 🔴 Kritik | Puan harcama |
-| `POST /api/proxy/loyalty/history` | 🟡 Orta | İşlem geçmişi |
-| Webhook: `orders/paid` | 🔴 Kritik | Satın almada puan ver |
-| Webhook: `customers/create` | 🟡 Orta | Kayıt puanı |
-| Cron: Birthday check | 🟢 Düşük | Günlük doğum günü kontrolü |
+| Eksik | Öncelik | Durum |
+|-------|---------|-------|
+| `POST /api/proxy/loyalty/balance` | 🔴 Kritik | ✅ TAMAMLANDI |
+| `POST /api/proxy/loyalty/redeem` | 🔴 Kritik | ✅ TAMAMLANDI |
+| `POST /api/proxy/loyalty/history` | 🟡 Orta | ✅ TAMAMLANDI |
+| Webhook: `orders/paid` | 🔴 Kritik | ✅ TAMAMLANDI |
+| Webhook: `customers/create` | 🟡 Orta | ⏳ Bekliyor |
+| Cron: Birthday check | 🟢 Düşük | ⏳ Bekliyor |
 
 ### 🛒 Shopify Eksikleri
 | Eksik | Öncelik |
