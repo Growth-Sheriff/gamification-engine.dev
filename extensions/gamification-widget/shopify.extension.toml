@@ -16,9 +16,27 @@ type = "spin-wheel"
 name = "Spin Wheel"
 target = "body"
 
-# Main Popup Block
+# Scratch Card Block
 [[extensions.blocks]]
-type = "gamification-popup"
-name = "Gamification Popup"
+type = "scratch-card"
+name = "Scratch Card"
+target = "body"
+
+# Popup Block
+[[extensions.blocks]]
+type = "popup"
+name = "Discount Popup"
+target = "body"
+
+# Loyalty Widget Block
+[[extensions.blocks]]
+type = "loyalty-widget"
+name = "Loyalty Widget"
+target = "section"
+
+# Referral Widget Block
+[[extensions.blocks]]
+type = "referral-widget"
+name = "Referral Widget"
 target = "section"
 
