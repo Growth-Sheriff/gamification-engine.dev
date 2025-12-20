@@ -46,7 +46,7 @@
                         <th>Seviye</th>
                         <th>Toplam Kazanim</th>
                         <th>Son Aktivite</th>
-                        <th>Islem</th>
+                        <th>Islemler</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -60,21 +60,33 @@
                                     <i class="ti ti-user"></i>
                                   </span>
                                 </div>
-                                <span><%= member.visitorId.substring(0, 12) %>...</span>
+                                <div>
+                                  <% if (member.email) { %>
+                                    <div class="fw-medium"><%= member.email %></div>
+                                    <small class="text-muted">ID: <%= member.visitorId.substring(0, 8) %>...</small>
+                                  <% } else { %>
+                                    <span><%= member.visitorId.substring(0, 12) %>...</span>
+                                  <% } %>
+                                </div>
                               </div>
                             </td>
-                            <td><strong><%= member.points.toLocaleString() %></strong></td>
+                            <td><strong class="text-primary"><%= member.points.toLocaleString() %></strong></td>
                             <td>
                               <span class="badge" style="background: <%= member.currentTier === 'Platinum' ? '#E5E4E2' : member.currentTier === 'Gold' ? '#FFD700' : member.currentTier === 'Silver' ? '#C0C0C0' : '#CD7F32' %>; color: #333;">
-                                <%= member.currentTier || 'Bronze' %>
+                                <i class="ti ti-crown me-1"></i><%= member.currentTier || 'Bronze' %>
                               </span>
                             </td>
                             <td><%= member.lifetimePoints.toLocaleString() %></td>
                             <td><%= member.updatedAt ? new Date(member.updatedAt).toLocaleDateString('tr-TR') : '-' %></td>
                             <td>
-                              <button class="btn btn-sm btn-outline-primary" onclick="adjustPoints('<%= member.id %>')">
-                                <i class="ti ti-edit"></i>
-                              </button>
+                              <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="adjustPoints('<%= member.id %>', <%= member.points %>)" title="Puan Ayarla">
+                                  <i class="ti ti-coin"></i>
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="showHistory('<%= member.id %>')" title="Gecmis">
+                                  <i class="ti ti-history"></i>
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         <% }); %>
@@ -83,6 +95,7 @@
                           <td colspan="6" class="text-center py-5">
                             <i class="ti ti-users-minus mb-3" style="font-size: 3rem; color: #ccc;"></i>
                             <p class="text-muted mb-0">Henuz uye yok</p>
+                            <p class="text-muted small">Musteriler alisveris yaptikca burada gorunecek</p>
                           </td>
                         </tr>
                       <% } %>

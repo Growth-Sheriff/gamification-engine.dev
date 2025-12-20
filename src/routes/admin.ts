@@ -21,10 +21,6 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const shopId = req.shop!.id;
 
-    // Get last 7 days for chart
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
     // Get statistics
     const [
       totalGames,
@@ -34,7 +30,6 @@ router.get('/', async (req: Request, res: Response) => {
       totalDiscounts,
       usedDiscounts,
       recentPlays,
-      chartAnalytics,
     ] = await Promise.all([
       prisma.game.count({ where: { shopId } }),
       prisma.game.count({ where: { shopId, isActive: true } }),
@@ -52,21 +47,10 @@ router.get('/', async (req: Request, res: Response) => {
         orderBy: { playedAt: 'desc' },
         take: 10,
       }),
-      prisma.analytics.findMany({
-        where: { shopId, date: { gte: sevenDaysAgo } },
-        orderBy: { date: 'asc' },
-      }),
     ]);
 
     // Calculate conversion rate
     const conversionRate = totalPlays > 0 ? ((usedDiscounts / totalPlays) * 100).toFixed(1) : '0';
-
-    // Chart data
-    const chartData = {
-      labels: chartAnalytics.map(a => a.date.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short' })),
-      plays: chartAnalytics.map(a => a.plays),
-      wins: chartAnalytics.map(a => a.wins),
-    };
 
     // Get games for sidebar
     const games = await prisma.game.findMany({
@@ -89,7 +73,6 @@ router.get('/', async (req: Request, res: Response) => {
       },
       recentPlays,
       games,
-      chartData,
     });
   } catch (error) {
     console.error('Dashboard error:', error);
@@ -393,10 +376,10 @@ router.get('/discounts/codes', async (req: Request, res: Response) => {
   try {
     const shopId = req.shop!.id;
     const page = parseInt(req.query.page as string) || 1;
-    const limit = 50;
+    const limit = 20;
     const skip = (page - 1) * limit;
 
-    const [discounts, total, usedCount, expiredCount] = await Promise.all([
+    const [discounts, total] = await Promise.all([
       prisma.discount.findMany({
         where: { shopId },
         include: {
@@ -408,23 +391,14 @@ router.get('/discounts/codes', async (req: Request, res: Response) => {
         take: limit,
       }),
       prisma.discount.count({ where: { shopId } }),
-      prisma.discount.count({ where: { shopId, status: 'USED' } }),
-      prisma.discount.count({ where: { shopId, status: 'EXPIRED' } }),
     ]);
 
-    const pendingCount = total - usedCount - expiredCount;
     const totalPages = Math.ceil(total / limit);
 
     res.render('pages/discounts/codes', {
       title: 'İndirim Kodları',
       shop: req.shop,
       discounts,
-      stats: {
-        totalCodes: total,
-        usedCodes: usedCount,
-        pendingCodes: pendingCount,
-        expiredCodes: expiredCount,
-      },
       pagination: {
         page,
         totalPages,
@@ -475,63 +449,11 @@ router.get('/analytics', async (req: Request, res: Response) => {
       { views: 0, plays: 0, wins: 0, claims: 0, redemptions: 0, revenue: 0 }
     );
 
-    // Chart data
-    const chartData = {
-      labels: analytics.map(a => a.date.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short' })),
-      plays: analytics.map(a => a.plays),
-      wins: analytics.map(a => a.wins),
-    };
-
-    // Game stats
-    const gameStats = await prisma.game.findMany({
-      where: { shopId },
-      include: {
-        _count: { select: { plays: true } },
-        plays: {
-          where: { result: 'WIN' },
-          select: { id: true },
-        },
-      },
-    });
-
-    const gameStatsFormatted = await Promise.all(gameStats.map(async g => {
-      const plays = g._count.plays;
-      const wins = g.plays.length;
-      const used = await prisma.discount.count({
-        where: {
-          shopId,
-          status: 'USED',
-          play: { gameId: g.id },
-        },
-      });
-      return {
-        name: g.name,
-        type: g.type,
-        plays,
-        wins,
-        winRate: plays > 0 ? Math.round((wins / plays) * 100) : 0,
-        used,
-        conversionRate: wins > 0 ? Math.round((used / wins) * 100) : 0,
-      };
-    }));
-
-    // Stats summary
-    const stats = {
-      totalPlays: totals.plays,
-      totalWins: totals.wins,
-      conversionRate: totals.plays > 0 ? Math.round((totals.redemptions / totals.plays) * 100) : 0,
-      usedDiscounts: totals.redemptions,
-      totalRevenue: totals.revenue,
-    };
-
     res.render('pages/analytics', {
       title: 'Analitik',
       shop: req.shop,
       analytics,
       totals,
-      chartData,
-      gameStats: gameStatsFormatted,
-      stats,
     });
   } catch (error) {
     console.error('Analytics page error:', error);
@@ -564,423 +486,6 @@ router.get('/settings', async (req: Request, res: Response) => {
     res.status(500).render('pages/error', {
       title: 'Error',
       message: 'Failed to load settings.',
-    });
-  }
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// LOYALTY SYSTEM
-// ═══════════════════════════════════════════════════════════════════════════
-
-/**
- * Loyalty Program
- * GET /loyalty
- */
-router.get('/loyalty', async (req: Request, res: Response) => {
-  try {
-    const shopId = req.shop!.id;
-
-    // Get or create loyalty program
-    let program = await prisma.loyaltyProgram.findUnique({
-      where: { shopId },
-      include: {
-        tiers: { orderBy: { minPoints: 'asc' } },
-      },
-    });
-
-    if (!program) {
-      program = await prisma.loyaltyProgram.create({
-        data: {
-          shopId,
-          name: 'Sadakat Programı',
-          isActive: false,
-          tiers: {
-            create: [
-              { name: 'Bronze', minPoints: 0, color: '#CD7F32', pointMultiplier: 1, order: 0 },
-              { name: 'Silver', minPoints: 500, color: '#C0C0C0', pointMultiplier: 1.25, order: 1 },
-              { name: 'Gold', minPoints: 1500, color: '#FFD700', pointMultiplier: 1.5, freeShipping: true, order: 2 },
-              { name: 'Platinum', minPoints: 5000, color: '#E5E4E2', pointMultiplier: 2, freeShipping: true, exclusiveAccess: true, order: 3 },
-            ],
-          },
-        },
-        include: {
-          tiers: { orderBy: { minPoints: 'asc' } },
-        },
-      });
-    }
-
-    // Get loyalty stats
-    const [totalMembers, totalPoints, totalRedeemed] = await Promise.all([
-      prisma.loyaltyPoints.count({ where: { shopId } }),
-      prisma.loyaltyPoints.aggregate({ where: { shopId }, _sum: { lifetimePoints: true } }),
-      prisma.pointTransaction.count({ where: { loyalty: { shopId }, type: 'REDEEM' } }),
-    ]);
-
-    res.render('pages/loyalty/index', {
-      title: 'Sadakat Programı',
-      shop: req.shop,
-      program,
-      stats: {
-        totalMembers,
-        totalPoints: totalPoints._sum.lifetimePoints || 0,
-        totalRedeemed,
-      },
-    });
-  } catch (error) {
-    console.error('Loyalty page error:', error);
-    res.status(500).render('pages/error', {
-      title: 'Error',
-      message: 'Failed to load loyalty program.',
-    });
-  }
-});
-
-/**
- * Loyalty Members
- * GET /loyalty/members
- */
-router.get('/loyalty/members', async (req: Request, res: Response) => {
-  try {
-    const shopId = req.shop!.id;
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = 20;
-    const skip = (page - 1) * limit;
-
-    const [members, total] = await Promise.all([
-      prisma.loyaltyPoints.findMany({
-        where: { shopId },
-        orderBy: { points: 'desc' },
-        skip,
-        take: limit,
-      }),
-      prisma.loyaltyPoints.count({ where: { shopId } }),
-    ]);
-
-    res.render('pages/loyalty/members', {
-      title: 'Üyeler',
-      shop: req.shop,
-      members,
-      pagination: {
-        page,
-        totalPages: Math.ceil(total / limit),
-        total,
-      },
-    });
-  } catch (error) {
-    console.error('Loyalty members error:', error);
-    res.status(500).render('pages/error', {
-      title: 'Error',
-      message: 'Failed to load members.',
-    });
-  }
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// A/B TESTING
-// ═══════════════════════════════════════════════════════════════════════════
-
-/**
- * A/B Tests List
- * GET /ab-tests
- */
-router.get('/ab-tests', async (req: Request, res: Response) => {
-  try {
-    const shopId = req.shop!.id;
-
-    const tests = await prisma.aBTest.findMany({
-      where: { shopId },
-      include: {
-        variants: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    res.render('pages/ab-tests/index', {
-      title: 'A/B Testleri',
-      shop: req.shop,
-      tests,
-    });
-  } catch (error) {
-    console.error('A/B tests error:', error);
-    res.status(500).render('pages/error', {
-      title: 'Error',
-      message: 'Failed to load A/B tests.',
-    });
-  }
-});
-
-/**
- * New A/B Test
- * GET /ab-tests/new
- */
-router.get('/ab-tests/new', async (req: Request, res: Response) => {
-  try {
-    const shopId = req.shop!.id;
-
-    const games = await prisma.game.findMany({
-      where: { shopId },
-      select: { id: true, name: true, type: true },
-    });
-
-    res.render('pages/ab-tests/form', {
-      title: 'Yeni A/B Test',
-      shop: req.shop,
-      test: null,
-      games,
-    });
-  } catch (error) {
-    console.error('New A/B test error:', error);
-    res.status(500).render('pages/error', {
-      title: 'Error',
-      message: 'Failed to load form.',
-    });
-  }
-});
-
-/**
- * A/B Test Detail
- * GET /ab-tests/:id
- */
-router.get('/ab-tests/:id', async (req: Request, res: Response) => {
-  try {
-    const shopId = req.shop!.id;
-    const testId = req.params.id;
-
-    const test = await prisma.aBTest.findFirst({
-      where: { id: testId, shopId },
-      include: {
-        variants: true,
-      },
-    });
-
-    if (!test) {
-      res.status(404).render('pages/error', {
-        title: 'Not Found',
-        message: 'A/B test not found.',
-      });
-      return;
-    }
-
-    const games = await prisma.game.findMany({
-      where: { shopId },
-      select: { id: true, name: true, type: true },
-    });
-
-    res.render('pages/ab-tests/form', {
-      title: 'A/B Test Düzenle',
-      shop: req.shop,
-      test,
-      games,
-    });
-  } catch (error) {
-    console.error('A/B test detail error:', error);
-    res.status(500).render('pages/error', {
-      title: 'Error',
-      message: 'Failed to load A/B test.',
-    });
-  }
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// TARGETING RULES
-// ═══════════════════════════════════════════════════════════════════════════
-
-/**
- * Targeting Rules
- * GET /targeting
- */
-router.get('/targeting', async (req: Request, res: Response) => {
-  try {
-    const shopId = req.shop!.id;
-
-    const rules = await prisma.targetingRule.findMany({
-      where: { shopId },
-      orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
-    });
-
-    const games = await prisma.game.findMany({
-      where: { shopId },
-      select: { id: true, name: true, type: true },
-    });
-
-    res.render('pages/targeting/index', {
-      title: 'Hedefleme Kuralları',
-      shop: req.shop,
-      rules,
-      games,
-    });
-  } catch (error) {
-    console.error('Targeting rules error:', error);
-    res.status(500).render('pages/error', {
-      title: 'Error',
-      message: 'Failed to load targeting rules.',
-    });
-  }
-});
-
-/**
- * New Targeting Rule
- * GET /targeting/new
- */
-router.get('/targeting/new', async (req: Request, res: Response) => {
-  try {
-    const shopId = req.shop!.id;
-
-    const games = await prisma.game.findMany({
-      where: { shopId },
-      select: { id: true, name: true, type: true },
-    });
-
-    res.render('pages/targeting/form', {
-      title: 'Yeni Hedefleme Kuralı',
-      shop: req.shop,
-      rule: null,
-      games,
-    });
-  } catch (error) {
-    console.error('New targeting rule error:', error);
-    res.status(500).render('pages/error', {
-      title: 'Error',
-      message: 'Failed to load form.',
-    });
-  }
-});
-
-/**
- * Edit Targeting Rule
- * GET /targeting/:id
- */
-router.get('/targeting/:id', async (req: Request, res: Response) => {
-  try {
-    const shopId = req.shop!.id;
-    const ruleId = req.params.id;
-
-    const rule = await prisma.targetingRule.findFirst({
-      where: { id: ruleId, shopId },
-    });
-
-    if (!rule) {
-      res.status(404).render('pages/error', {
-        title: 'Not Found',
-        message: 'Targeting rule not found.',
-      });
-      return;
-    }
-
-    const games = await prisma.game.findMany({
-      where: { shopId },
-      select: { id: true, name: true, type: true },
-    });
-
-    res.render('pages/targeting/form', {
-      title: 'Hedefleme Kuralı Düzenle',
-      shop: req.shop,
-      rule,
-      games,
-    });
-  } catch (error) {
-    console.error('Edit targeting rule error:', error);
-    res.status(500).render('pages/error', {
-      title: 'Error',
-      message: 'Failed to load targeting rule.',
-    });
-  }
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// REFERRAL SYSTEM
-// ═══════════════════════════════════════════════════════════════════════════
-
-/**
- * Referral Program
- * GET /referral
- */
-router.get('/referral', async (req: Request, res: Response) => {
-  try {
-    const shopId = req.shop!.id;
-
-    // Get or create referral program
-    let program = await prisma.referralProgram.findUnique({
-      where: { shopId },
-    });
-
-    if (!program) {
-      program = await prisma.referralProgram.create({
-        data: {
-          shopId,
-          isActive: false,
-        },
-      });
-    }
-
-    // Get referral stats
-    const [totalReferrals, completedReferrals, pendingReferrals] = await Promise.all([
-      prisma.referral.count({ where: { program: { shopId } } }),
-      prisma.referral.count({ where: { program: { shopId }, status: 'COMPLETED' } }),
-      prisma.referral.count({ where: { program: { shopId }, status: 'PENDING' } }),
-    ]);
-
-    // Recent referrals
-    const recentReferrals = await prisma.referral.findMany({
-      where: { program: { shopId } },
-      orderBy: { createdAt: 'desc' },
-      take: 10,
-    });
-
-    res.render('pages/referral/index', {
-      title: 'Arkadaş Getir',
-      shop: req.shop,
-      program,
-      stats: {
-        totalReferrals,
-        completedReferrals,
-        pendingReferrals,
-        conversionRate: totalReferrals > 0 ? Math.round((completedReferrals / totalReferrals) * 100) : 0,
-      },
-      recentReferrals,
-    });
-  } catch (error) {
-    console.error('Referral program error:', error);
-    res.status(500).render('pages/error', {
-      title: 'Error',
-      message: 'Failed to load referral program.',
-    });
-  }
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// EMAIL INTEGRATION
-// ═══════════════════════════════════════════════════════════════════════════
-
-/**
- * Email Integration
- * GET /integrations/email
- */
-router.get('/integrations/email', async (req: Request, res: Response) => {
-  try {
-    const shopId = req.shop!.id;
-
-    // Get or create email integration
-    let integration = await prisma.emailIntegration.findUnique({
-      where: { shopId },
-    });
-
-    if (!integration) {
-      integration = await prisma.emailIntegration.create({
-        data: { shopId },
-      });
-    }
-
-    res.render('pages/integrations/email', {
-      title: 'Email Entegrasyonu',
-      shop: req.shop,
-      integration,
-    });
-  } catch (error) {
-    console.error('Email integration error:', error);
-    res.status(500).render('pages/error', {
-      title: 'Error',
-      message: 'Failed to load email integration.',
     });
   }
 });

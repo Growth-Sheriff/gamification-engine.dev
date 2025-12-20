@@ -156,7 +156,7 @@
                       <% if (typeof program !== 'undefined' && program.tiers && program.tiers.length > 0) { %>
                         <% program.tiers.forEach(function(tier, idx) { %>
                           <div class="col-6">
-                            <div class="tier-card" style="background: <%= tier.color %>15; border: 1px solid <%= tier.color %>;">
+                            <div class="tier-card" style="background: <%= tier.color %>15; border: 1px solid <%= tier.color %>; cursor: pointer;" onclick='showTierModal(<%= JSON.stringify(tier) %>)'>
                               <div class="tier-icon" style="background: <%= tier.color %>;">
                                 <i class="ti ti-crown text-white"></i>
                               </div>
@@ -167,6 +167,7 @@
                                 <% if (tier.freeShipping) { %><li><i class="ti ti-check text-success me-1"></i>Ucretsiz kargo</li><% } %>
                                 <% if (tier.exclusiveAccess) { %><li><i class="ti ti-check text-success me-1"></i>Ozel erisim</li><% } %>
                               </ul>
+                              <small class="text-muted mt-2 d-block"><i class="ti ti-edit me-1"></i>Duzenlemek icin tiklayin</small>
                             </div>
                           </div>
                         <% }); %>
